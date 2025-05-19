@@ -38,21 +38,35 @@
         <h4>Click anywhere to get popunder ads!</h4>
     </div>
     <script>
-      window.addEventListener('load', function() {
-        setTimeout(function() {
-            // Check if the ad script is loaded and has the expected function
-            if (typeof exoJsPop101 !== 'undefined' && exoJsPop101.add) {
-                // Manually trigger the ad display
-                exoJsPop101.add({
-                    idzone: 202,  // Use your zone ID
-                    type: 'popunder'
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                // Create a more realistic synthetic event
+                const event = new MouseEvent('click', {
+                    view: window,
+                    bubbles: true,
+                    cancelable: false,
+                    screenX: 100,
+                    screenY: 100,
+                    clientX: 100,
+                    clientY: 100,
+                    ctrlKey: false,
+                    altKey: false,
+                    shiftKey: false,
+                    metaKey: false,
+                    button: 0,
+                    relatedTarget: null
                 });
-            } else {
-                console.error('Ad script not loaded properly');
-            }
-        }, 1500); // 1.5 second delay to ensure script loads
-    });
-    </script>
+                
+                // Dispatch on document and body
+                document.dispatchEvent(event);
+                document.body.dispatchEvent(event);
+                
+                // Additional trigger for ad containers
+                const adContainers = document.querySelectorAll('[id*="ad"], .ad-container');
+                adContainers.forEach(el => el.dispatchEvent(event));
+            }, 2000);
+        });
+        </script>
 </body>
 
 </html>
