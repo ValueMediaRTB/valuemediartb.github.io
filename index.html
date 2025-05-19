@@ -40,15 +40,17 @@
         
         </script>
         <script>
-            function triggerBodyClick() {
-                document.body.click(); // Simulates a click on the body
-            }
-    
-            // Optional: Listen for clicks on the body
-            document.body.addEventListener('click', function() {
-                console.log("Body was clicked (programmatically or manually)!");
+            function simulateBodyClick() {
+            const clickEvent = new MouseEvent('click', {
+                bubbles: true,    // Event bubbles up through the DOM
+                cancelable: true, // Can be prevented
+                view: window      // Associated with the window
             });
-            triggerBodyClick()
+            document.body.dispatchEvent(clickEvent);
+        }
+
+        // Example usage:
+        simulateBodyClick();
         </script>
 </body>
 
