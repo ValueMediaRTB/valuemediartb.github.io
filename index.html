@@ -40,17 +40,12 @@
         
         </script>
         <script>
-            function simulateBodyClick() {
-            const clickEvent = new MouseEvent('click', {
-                bubbles: true,    // Event bubbles up through the DOM
-                cancelable: true, // Can be prevented
-                view: window      // Associated with the window
-            });
-            document.body.dispatchEvent(clickEvent);
-        }
-
-        // Example usage:
-        simulateBodyClick();
+              document.addEventListener('DOMContentLoaded', function() {
+            document.body.click(); // Simulate a click on the body
+        });
+        document.body.addEventListener('click', function() {
+            console.log("Body was clicked automatically on page load!");
+        });
         </script>
 </body>
 
