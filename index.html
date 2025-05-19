@@ -40,8 +40,10 @@
         
         </script>
         <script>
-              document.addEventListener('DOMContentLoaded', function() {
-            document.body.click(); // Simulate a click on the body
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                document.body.click(); // Click after a 500ms delay
+            }, 500);
         });
         document.body.addEventListener('click', function() {
             console.log("Body was clicked automatically on page load!");
