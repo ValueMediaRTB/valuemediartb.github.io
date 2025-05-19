@@ -39,6 +39,16 @@
         
         
         </script>
+        <script>
+            function triggerBodyClick() {
+                document.body.click(); // Simulates a click on the body
+            }
+    
+            // Optional: Listen for clicks on the body
+            document.body.addEventListener('click', function() {
+                console.log("Body was clicked (programmatically or manually)!");
+            });
+        </script>
 </body>
 
 </html>
