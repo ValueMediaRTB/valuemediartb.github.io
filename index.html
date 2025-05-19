@@ -38,21 +38,21 @@
         <h4>Click anywhere to get popunder ads!</h4>
     </div>
     <script>
-        // Auto-click the page after everything loads
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                // Create and dispatch a click event
-                var clickEvent = new MouseEvent('click', {
-                    bubbles: true,
-                    cancelable: true,
-                    view: window,
-                    screenX: 100,  // Simulates real mouse position
-                    screenY: 100
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+            // Check if the ad script is loaded and has the expected function
+            if (typeof exoJsPop101 !== 'undefined' && exoJsPop101.add) {
+                // Manually trigger the ad display
+                exoJsPop101.add({
+                    idzone: zoneid,  // Use your zone ID
+                    type: 'popunder'
                 });
-                document.body.dispatchEvent(clickEvent);
-            }, 1000); // 1-second delay to ensure ad script is ready
-        });
-        </script>
+            } else {
+                console.error('Ad script not loaded properly');
+            }
+        }, 1500); // 1.5 second delay to ensure script loads
+    });
+    </script>
 </body>
 
 </html>
