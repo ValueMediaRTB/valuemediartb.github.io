@@ -4,14 +4,40 @@ const path = require('path');
 const app = express();
 const PORT = 3000;
 
-// Enable CORS for all routes
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*'); // Allow any domain (replace * with your GitHub Pages URL in production)
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  console.log('Received request:', req.method, req.url);
   next();
 });
+// Enable CORS for all routes
+app.use((req, res, next) => {
+  try {
+    const allowedOrigin = 'https://valuemediartb.github.io';
 
+    // Optional: only allow requests from your GitHub Pages
+    const origin = req.headers.origin || '';
+    const referer = req.headers.referer || '';
+
+    if (
+      origin && !origin.startsWith(allowedOrigin) &&
+      referer && !referer.startsWith(allowedOrigin)
+    ) {
+      console.warn('Blocked request from disallowed origin:', origin || referer);
+      return res.status(403).send('Forbidden');
+    }
+
+    if (req.method === 'OPTIONS') {
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'ngrok-skip-browser-warning, Content-Type');
+      return res.sendStatus(200);
+    }
+    console.log('Incoming request:', req.method, req.path);
+    next();
+  } catch (err) {
+    console.error('Error in middleware:', err);
+    res.status(500).send('Server error');
+  }
+});
 // Serve static files (like your GitHub Pages HTML)
 app.use(express.static('public'));
 
