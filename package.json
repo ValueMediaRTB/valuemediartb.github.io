@@ -1,0 +1,22 @@
+{
+  "name": "external_platforms_helper",
+  "version": "1.0.0",
+  "description": "External API integration program",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Andrei Petrariu",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ValueMediaRTB/valuemediartb.github.io.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ValueMediaRTB/valuemediartb.github.io/issues"
+  },
+  "homepage": "https://github.com/ValueMediaRTB/valuemediartb.github.io#readme"
+}
