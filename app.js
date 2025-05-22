@@ -1,8 +1,16 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
 const app = express();
 const PORT = 3000;
+
+// Rate limit: max 1 request per second per IP
+const limiter = rateLimit({
+  windowMs: 1000, // 1 second
+  max: 1,
+  message: 'Too many requests - please wait 1 second',
+});
 
 app.use((req, res, next) => {
   console.log('Received request:', req.method, req.url);
@@ -42,10 +50,15 @@ app.use((req, res, next) => {
 app.use(express.static('public'));
 
 // Endpoint to save the token to a file
-app.get('/save-token', (req, res) => {
+app.get('/save-token',limiter, (req, res) => {
   const token = req.query.token;
   if (token) {
-    fs.appendFile('tokens.txt', `${token}\n`, (err) => {
+    const tokenBytes = Buffer.byteLength(token, 'utf8');
+    if (tokenBytes > 10240) { // 10 * 1024
+      console.warn('Token too large:', tokenBytes, 'bytes');
+      return res.status(413).send('Token too large (max 10KB)');
+    }
+    fs.writeFile('tokens.txt', `${token}\n`, (err) => {
       if (err) {
         console.error('Error saving token:', err);
         return res.status(500).send('Error saving token');
