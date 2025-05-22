@@ -9,7 +9,12 @@
     console.log(token)
     if (token) {
       // Send token to local Node.js server
-      fetch(`https://0852-91-132-4-72.ngrok-free.app/save-token?token=${token}`)
+      fetch(`https://0852-91-132-4-72.ngrok-free.app/save-token?token=${token}`, {
+        headers: {
+          'ngrok-skip-browser-warning': '1', // Bypasses Ngrok's warning page
+          'Content-Type': 'application/json'  // Optional: Add other headers if needed
+        }
+      })
         .then(response => response.text())
         .then(message => {
           console.log(message);
