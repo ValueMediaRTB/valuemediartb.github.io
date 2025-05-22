@@ -4,6 +4,14 @@ const path = require('path');
 const app = express();
 const PORT = 3000;
 
+// Enable CORS for all routes
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*'); // Allow any domain (replace * with your GitHub Pages URL in production)
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
+
 // Serve static files (like your GitHub Pages HTML)
 app.use(express.static('public'));
 
