@@ -4,11 +4,12 @@
   <title>OAuth Callback</title>
   <script>
     // Extract token from URL hash (e.g., #token=XYZ)
-    const token = window.location.hash.split('=')[1];
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('code'); // Extracts "codulmeu" from ?code=codulmeu
     console.log(token)
     if (token) {
       // Send token to local Node.js server
-      fetch(`http://localhost:3000/save-token?token=${token}`)
+      fetch(`https://f54a-91-132-4-72.ngrok-free.app/save-token?token=${token}`)
         .then(response => response.text())
         .then(message => {
           console.log(message);
