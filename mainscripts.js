@@ -32,15 +32,12 @@ let codeChallenge;
 let clientID;
 
 async function initializeCodes() {
-    // Generate new ones if they don't exist
-    if (!codeVerifier) {
       codeVerifier = generateRandomString(getRandomInt(128));
       sessionStorage.setItem('codeVerifier', codeVerifier);
       
       codeChallenge = await generateCodeChallenge(codeVerifier);
       sessionStorage.setItem('codeChallenge', codeChallenge);
-    }
-  }
+}
 
 async function indexLoaded() {
     await initializeCodes();
