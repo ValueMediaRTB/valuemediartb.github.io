@@ -29,6 +29,7 @@ async function generateCodeChallenge(codeVerifier) {
 
 (async function() {
 const codeVerifier = generateRandomString(getRandomInt(128));
+document.getElementById('codeVerifierContainer').innerHTML = "Code verifier: "+codeVerifier;
 const codeChallenge = await generateCodeChallenge(codeVerifier);
 
 window.authorizeDaisycon = function(){
