@@ -11,10 +11,10 @@
     </script>
     <title>Value Media</title>
     <form id="daisyconForm">
-        <div>
-            <div style="margin:8px" id="codeVerifierContainer"></div>
-            <label style="margin:8px" for="clientID">Client ID:</label>
-            <input style="margin:8px;  width:250px" id="clientID" type="text" required>
+        <div style="display: grid; grid-template-columns: auto 1fr; align-items: center; margin:8px; gap: 8px">
+            <div id="codeVerifierContainer"></div>
+            <label for="clientID">Client ID:</label>
+            <input style="width:250px" id="clientID" type="text" required>
         </div>
         <button id="authorizeDaisyconBtn" style="margin:8px" type="button" onclick="authorizeDaisycon()">Authorize Daisycon</button>
     </form>
