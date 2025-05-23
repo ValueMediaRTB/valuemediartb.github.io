@@ -24,6 +24,7 @@ async function generateCodeChallenge(codeVerifier) {
 let codeVerifier;
 let codeChallenge;
 let clientID;
+let token;
 const publisherID = 470796;
 
 async function initializeCodes() {
@@ -46,6 +47,12 @@ function authLoaded(){
     clientID = sessionStorage.getItem('clientID');
     document.getElementById('codeVerificationInput').value = codeVerifier
     document.getElementById('accessDaisyconBtn').disabled = false
+    document.getElementById('getCampaignMaterialBtn').disabled = true
+    const urlParams = new URLSearchParams(window.location.search);
+    token = urlParams.get('code'); // 
+    if (token) {
+        document.getElementById('tokenProcessed').value = token
+    }
     console.log("authLoaded() called")
 }
 
@@ -116,6 +123,7 @@ async function accessDaisycon(){
         document.getElementById('accessToken').innerHTML = "Access token: "+data.access_token
         document.getElementById('refreshToken').innerHTML = "Refresh token: "+data.refresh_token
         document.getElementById('accessDaisyconBtn').disabled = true
+        document.getElementById('getCampaignMaterialBtn').disabled = false
 
         console.log('Success:', data);
       } catch (error) {
@@ -124,27 +132,29 @@ async function accessDaisycon(){
 }
 
 async function getCampaignMaterial(){
-    try {
-        const response = await fetch('https://e9ff-91-132-4-72.ngrok-free.app/proxy' , {
-          method: 'POST',
-          body: JSON.stringify({
-            targetUrl:'https://services.daisycon.com/publishers/470796/material/programs?page=1&per_page=5',
-            headers: { 'accept': 'application/json',
-            'Authorization':'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJ1aWQiOjM3OTExOSwidXNnIjo2LCJwdWJsaXNoZXJzIjpbeyJpZCI6NDcwNzk2LCJzZXJ2aWNlX2dyb3VwcyI6NTJ9XSwiaWF0IjoxNzQ4MDA4MDQ1LCJleHAiOjE3NDgwMDk4NDUsImlzcyI6Im9hdXRoIiwiYXVkIjoiNzkwIn0.sXF57_sDMhC54nIQsAGyjnBaPrwnvsmkDpC0fRajxO2LqpxKxHV35D3vKYmW9vQU_G5XAoMFR62YlHplrhYiUw' },
-            method:"GET"
-            }),
-          headers: { 'Content-Type': 'application/json' }
-        });
-    
-        const data = await response.json();
-        // Handle the response (e.g., save access token)
-        document.getElementById('accessResult').innerHTML = "Authentication successful!"
-        document.getElementById('accessToken').innerHTML = "Access token: "+data.access_token
-        document.getElementById('refreshToken').innerHTML = "Refresh token: "+data.refresh_token
-        document.getElementById('accessDaisyconBtn').disabled = true
+    if(token){
+        try {
+            const response = await fetch('https://e9ff-91-132-4-72.ngrok-free.app/proxy' , {
+            method: 'POST',
+            body: JSON.stringify({
+                targetUrl:'https://services.daisycon.com/publishers/470796/material/programs?page=1&per_page=5',
+                headers: { 'accept': 'application/json',
+                'Authorization':'Bearer '+token },
+                method:"GET"
+                }),
+            headers: { 'Content-Type': 'application/json' }
+            });
+        
+            const data = await response.json();
+            // Handle the response (e.g., save access token)
+            document.getElementById('accessResult').innerHTML = "Authentication successful!"
+            document.getElementById('accessToken').innerHTML = "Access token: "+data.access_token
+            document.getElementById('refreshToken').innerHTML = "Refresh token: "+data.refresh_token
+            document.getElementById('accessDaisyconBtn').disabled = true
 
-        console.log('Success:', data);
-      } catch (error) {
-        console.error('Error:', error);
-      }
+            console.log('Success:', data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
 }
