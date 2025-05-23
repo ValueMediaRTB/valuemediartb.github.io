@@ -49,6 +49,24 @@ app.use((req, res, next) => {
 // Serve static files (like your GitHub Pages HTML)
 app.use(express.static('public'));
 
+// Proxy endpoint
+app.post('/proxy', express.json(), async (req, res) => {
+  try {
+    const { targetUrl, body, headers } = req.body;
+    
+    const response = await fetch(targetUrl, {
+      method: 'POST',
+      headers: headers || { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: typeof body === 'string' ? body : new URLSearchParams(body).toString()
+    });
+
+    const data = await response.text();
+    res.status(response.status).send(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Endpoint to save the token to a file
 app.get('/save-token',limiter, (req, res) => {
   const token = req.query.token;

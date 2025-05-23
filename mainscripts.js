@@ -103,30 +103,22 @@ async function accessDaisycon(){
         'code_verifier':codeVerifier
     }
     try {
-        console.log(JSON.stringify(formData))
-        const response = await fetch('https://login.daisycon.com/oauth/access-token', {
-            mode: 'no-cors',
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0'
-            },
-            body: JSON.stringify(formData)
+        const response = await fetch('https://f373-91-132-4-72.ngrok-free.app/proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            targetUrl: 'https://login.daisycon.com/oauth/access-token',
+            body: formData
+          })
         });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
+    
         const data = await response.json();
-        console.log('Success:', data);
-        
         // Handle the response (e.g., save access token)
         document.getElementById('accessResult').innerHTML = "Authentication successful!"
         document.getElementById('accessTokens').innerHTML = data
 
-    } catch (error) {
+        console.log('Success:', data);
+      } catch (error) {
         console.error('Error:', error);
-        alert('Failed to authenticate: ' + error.message);
-    }
+      }
 }

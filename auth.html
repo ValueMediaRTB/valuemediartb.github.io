@@ -27,21 +27,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('code'); // Extracts "codulmeu" from ?code=codulmeu
         if (token) {
-          document.getElementById('tokenProcessed').value = token
-          // Send token to local Node.js server
-          fetch(`https://22a2-91-132-4-72.ngrok-free.app/save-token?token=${token}`, {
-            headers: {
-              'ngrok-skip-browser-warning': '1', // Bypasses Ngrok's warning page
-              'Content-Type': 'application/json'  // Optional: Add other headers if needed
-            },
-            mode: 'cors' // Explicitly enable CORS
-          })
-            .then(response => response.text())
-            .then(message => {
-              document.getElementById('tokenProcessed').innerHTML = "Token written to file \'/tokens.txt\' !"
-              window.close(); // Close the window after saving
-            })
-            .catch(err => console.error('Error:', err));
+            document.getElementById('tokenProcessed').value = token
         }
       </script>
 </body>
