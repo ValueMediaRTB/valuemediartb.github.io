@@ -49,12 +49,11 @@ app.use(express.static('public'));
 app.post('/proxy', express.json(), async (req, res) => {
   try {
     const { targetUrl, body, headers } = req.body;
-    console.log(body);
     
     const response = await fetch(targetUrl, {
       method: 'POST',
       headers: headers,
-      body: body
+      body: JSON.stringify(body)
     });
 
     const data = await response.text();

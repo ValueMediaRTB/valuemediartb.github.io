@@ -7,24 +7,18 @@ function generateRandomString(length) {
 	}
 	return randomString;
 }
+
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
+
 async function generateCodeChallenge(codeVerifier) {
-    // Convert string to ArrayBuffer
-    const encoder = new TextEncoder();
-    const data = encoder.encode(codeVerifier);
-    
-    // Generate SHA-256 hash (browser crypto API)
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    
-    // Convert ArrayBuffer to Base64URL
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashBase64 = btoa(String.fromCharCode(...hashArray));
-    return hashBase64
-        .replace(/=/g, '')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_');
+	let digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codeVerifier));
+
+	return btoa(String.fromCharCode(...new Uint8Array(digest)))
+		.replace(/=/g, '')
+		.replace(/\+/g, '-')
+		.replace(/\//g, '_');
 }
 
 let codeVerifier;
