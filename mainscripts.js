@@ -10,28 +10,28 @@ function generateRandomString(length) {
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
-function generateCodeChallenge(codeVerifier) {
-    // Using Node.js crypto module (synchronous)
-    const crypto = require('crypto');
+async function generateCodeChallenge(codeVerifier) {
+    // Convert string to ArrayBuffer
+    const encoder = new TextEncoder();
+    const data = encoder.encode(codeVerifier);
     
-    // Create SHA-256 hash
-    const digest = crypto.createHash('sha256')
-      .update(codeVerifier)
-      .digest();
-  
-    // Convert to Base64URL
-    return Buffer.from(digest)
-      .toString('base64')
-      .replace(/=/g, '')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_');
-  }
+    // Generate SHA-256 hash (browser crypto API)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    
+    // Convert ArrayBuffer to Base64URL
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashBase64 = btoa(String.fromCharCode(...hashArray));
+    return hashBase64
+        .replace(/=/g, '')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_');
+}
 
-
+(async function() {
 const codeVerifier = generateRandomString(getRandomInt(128));
 const codeChallenge = generateCodeChallenge(codeVerifier);
 
-function authorizeDaisycon(){
+window.authorizeDaisycon = function(){
     // Get form values
     const clientID = document.getElementById('clientID').value;
     const redirectURI = 'https://valuemediartb.github.io/auth.html'
@@ -54,4 +54,5 @@ function authorizeDaisycon(){
 
     location.replace(authorizeUrl.toString())
 
-}
+}; 
+})();
