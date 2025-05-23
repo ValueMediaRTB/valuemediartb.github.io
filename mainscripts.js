@@ -29,7 +29,7 @@ async function generateCodeChallenge(codeVerifier) {
 
 (async function() {
 const codeVerifier = generateRandomString(getRandomInt(128));
-const codeChallenge = generateCodeChallenge(codeVerifier);
+const codeChallenge = await generateCodeChallenge(codeVerifier);
 
 window.authorizeDaisycon = function(){
     // Get form values
