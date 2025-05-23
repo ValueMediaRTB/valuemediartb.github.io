@@ -8,12 +8,10 @@
 <body>
     <form id="daisyconAccessForm">
         <div style="display: grid; grid-template-columns: auto 1fr; align-items: center; margin:8px; gap: 8px">
-            <label for="tokenProcessed">Token:</label>
-            <input style=" width:100%" id="tokenProcessed" type="text" required>
-        </div>
-        <div style="display: grid; grid-template-columns: auto 1fr; align-items: center; margin:8px; gap: 8px">
-            <label for="codeVerificationInput">Code verification:</label>
-            <input style="width:100%" id="codeVerificationInput" type="text" required>
+            <label style="grid-row: 1;" for="tokenProcessed">Token:</label>
+            <input style="width:100%; grid-row: 1;" id="tokenProcessed" type="text" required>
+            <label style="grid-row: 2;" for="codeVerificationInput">Code verification:</label>
+            <input style="width:100%;grid-row: 2;" id="codeVerificationInput" type="text" required>
         </div>
         <button style="margin:8px" type="button" id="accessDaisyconBtn" onclick="accessDaisycon()">Access Daisycon API</button>
     </form>
