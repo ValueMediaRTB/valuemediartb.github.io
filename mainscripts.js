@@ -105,6 +105,7 @@ async function accessDaisycon(){
     try {
         const response = await fetch('https://e9ff-91-132-4-72.ngrok-free.app/proxy', {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             targetUrl: 'https://login.daisycon.com/oauth/access-token',
             body: formData,
