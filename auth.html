@@ -18,7 +18,6 @@
       })
         .then(response => response.text())
         .then(message => {
-          console.log(message);
           document.getElementById('tokenProcessed').innerHTML = "Token written to file \'/tokens.txt\' !"
           window.close(); // Close the window after saving
         })
