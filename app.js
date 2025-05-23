@@ -48,29 +48,23 @@ app.use((req, res, next) => {
 app.use(express.static('public'));
 
 // Proxy endpoint
-app.get('/proxy', express.json(), async (req, res) => {
-  try {
-    const { targetUrl, headers,method } = req.body;
-    const response = await fetch(targetUrl, {
-      method: method,
-      headers: headers
-    });
-
-    const data = await response.text();
-    res.status(response.status).send(data);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 app.post('/proxy', express.json(), async (req, res) => {
   try {
     const { targetUrl, body, headers,method } = req.body;
-    
-    const response = await fetch(targetUrl, {
+    let response;
+    if(method == 'GET'){
+      response = await fetch(targetUrl, {
+        method: method,
+        headers: headers
+      });
+    }
+    else if(method =="POST"){
+      response = await fetch(targetUrl, {
       method: method,
       headers: headers,
       body: JSON.stringify(body)
     });
+    }
 
     const data = await response.text();
     res.status(response.status).send(data);
