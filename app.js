@@ -48,6 +48,7 @@ app.use(express.static('public'));
 // Proxy endpoint
 app.post('/proxy', express.json(), async (req, res) => {
   try {
+    console.log(req.body)
     const { targetUrl, body, headers } = req.body;
     
     const response = await fetch(targetUrl, {
