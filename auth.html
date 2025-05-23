@@ -18,7 +18,8 @@
         <button style="margin:8px" type="button" id="accessDaisyconBtn" onclick="accessDaisycon()">Access Daisycon API</button>
     </form>
     <div style="margin:8px" id="accessResult"></div>
-    <div style="margin:8px" id="accessTokens"></div>
+    <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="accessToken"></div>
+    <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="refreshToken"></div>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
                 authLoaded();
