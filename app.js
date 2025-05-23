@@ -33,13 +33,9 @@ app.use((req, res, next) => {
       return res.status(403).send('Forbidden');
     }
 
-    if (req.method === 'OPTIONS') {
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.header('Access-Control-Allow-Headers', 'ngrok-skip-browser-warning, Content-Type');
-      return res.sendStatus(200);
-    }
-    console.log('Incoming request:', req.method, req.path);
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
     next();
   } catch (err) {
     console.error('Error in middleware:', err);

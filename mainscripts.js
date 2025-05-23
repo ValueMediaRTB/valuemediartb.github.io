@@ -103,7 +103,7 @@ async function accessDaisycon(){
         'code_verifier':codeVerifier
     }
     try {
-        const response = await fetch('https://f373-91-132-4-72.ngrok-free.app/proxy', {
+        const response = await fetch('https://117b-91-132-4-72.ngrok-free.app/proxy', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
