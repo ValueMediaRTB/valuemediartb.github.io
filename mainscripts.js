@@ -27,9 +27,9 @@ async function generateCodeChallenge(codeVerifier) {
         .replace(/\//g, '_');
 }
 
-const codeVerifier = generateRandomString(getRandomInt(128));
-let clientID = 0
 (async function() {
+let clientID = 0
+const codeVerifier = generateRandomString(getRandomInt(128));
 document.getElementById('codeVerifierContainer').innerHTML = "Code verifier: "+codeVerifier;
 const codeChallenge = await generateCodeChallenge(codeVerifier);
 
