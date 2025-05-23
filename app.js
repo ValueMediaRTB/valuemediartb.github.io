@@ -50,10 +50,9 @@ app.use(express.static('public'));
 // Proxy endpoint
 app.get('/proxy', express.json(), async (req, res) => {
   try {
-    const { targetUrl, headers } = req.body;
-    
+    const { targetUrl, headers,method } = req.body;
     const response = await fetch(targetUrl, {
-      method: 'GET',
+      method: method,
       headers: headers
     });
 
@@ -65,10 +64,10 @@ app.get('/proxy', express.json(), async (req, res) => {
 });
 app.post('/proxy', express.json(), async (req, res) => {
   try {
-    const { targetUrl, body, headers } = req.body;
+    const { targetUrl, body, headers,method } = req.body;
     
     const response = await fetch(targetUrl, {
-      method: 'POST',
+      method: method,
       headers: headers,
       body: JSON.stringify(body)
     });
