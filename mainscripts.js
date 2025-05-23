@@ -10,17 +10,25 @@ function generateRandomString(length) {
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
-async function generateCodeChallenge(codeVerifier) {
-	let digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codeVerifier));
+function generateCodeChallenge(codeVerifier) {
+    // Using Node.js crypto module (synchronous)
+    const crypto = require('crypto');
+    
+    // Create SHA-256 hash
+    const digest = crypto.createHash('sha256')
+      .update(codeVerifier)
+      .digest();
+  
+    // Convert to Base64URL
+    return Buffer.from(digest)
+      .toString('base64')
+      .replace(/=/g, '')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_');
+  }
 
-	return btoa(String.fromCharCode(...new Uint8Array(digest)))
-		.replace(/=/g, '')
-		.replace(/\+/g, '-')
-		.replace(/\//g, '_');
-}
 
-
-const codeChallenge = await this.generateCodeChallenge(codeVerifier);
+const codeChallenge = generateCodeChallenge(codeVerifier);
 const codeVerifier = generateRandomString(getRandomInt(128));
 
 function authorizeDaisycon(){
