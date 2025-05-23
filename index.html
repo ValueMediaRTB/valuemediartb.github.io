@@ -3,8 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="mainscripts.js" type="script">
     <title>Value Media</title>
-    
+    <form id="daisyconForm">
+        <div>
+            <label for="clientID">Client ID:</label>
+            <input id="clientID" type="text" required>
+        </div>
+        <button type="button" onclick="authorizeDaisycon()">Authorize Daisycon</button>
+    </form>
 </body>
 
 </html>
