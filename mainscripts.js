@@ -32,10 +32,6 @@ let codeChallenge;
 let clientID;
 
 async function initializeCodes() {
-    // Try to get from sessionStorage first
-    codeVerifier = sessionStorage.getItem('codeVerifier');
-    codeChallenge = sessionStorage.getItem('codeChallenge');
-    
     // Generate new ones if they don't exist
     if (!codeVerifier) {
       codeVerifier = generateRandomString(getRandomInt(128));
