@@ -28,8 +28,8 @@ function generateCodeChallenge(codeVerifier) {
   }
 
 
-const codeChallenge = generateCodeChallenge(codeVerifier);
 const codeVerifier = generateRandomString(getRandomInt(128));
+const codeChallenge = generateCodeChallenge(codeVerifier);
 
 function authorizeDaisycon(){
     // Get form values
