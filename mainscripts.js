@@ -106,11 +106,11 @@ async function accessDaisycon(){
         const response = await fetch('https://e9ff-91-132-4-72.ngrok-free.app' , {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: {
+          body: JSON.stringify({
             targetUrl: 'https://login.daisycon.com/oauth/access-token',
             body: formData,
             headers: { 'Content-Type': 'application/json' }
-          }
+          })
         });
     
         const data = await response.json();
