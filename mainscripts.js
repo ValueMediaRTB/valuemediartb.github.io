@@ -8,8 +8,8 @@ function generateRandomString(length) {
 	return randomString;
 }
 
-function getRandomInt(max) {
-  return Math.floor(Math.random() * max);
+function getRandomInt(min,max) {
+  return Math.floor(Math.random() * (max-min) + min);
 }
 
 async function generateCodeChallenge(codeVerifier) {
@@ -26,7 +26,7 @@ let codeChallenge;
 let clientID;
 
 async function initializeCodes() {
-      codeVerifier = generateRandomString(getRandomInt(128));
+      codeVerifier = generateRandomString(getRandomInt(43,128));
       sessionStorage.setItem('codeVerifier', codeVerifier);
       
       codeChallenge = await generateCodeChallenge(codeVerifier);
