@@ -94,7 +94,7 @@ async function accessDaisycon(){
         return;
     }
 
-    authorizeUrl = new URL('https://login.daisycon.com/oauth/access-token');
+    accessUrl = 'https://login.daisycon.com/oauth/access-token';
     const formData = {'grant_type':'authorization_code',
         'code':token,
         'client_id':clientID,
@@ -103,14 +103,14 @@ async function accessDaisycon(){
         'code_verifier':codeVerifier
     }
     try {
-        const response = await fetch('https://e9ff-91-132-4-72.ngrok-free.app/proxy', {
+        const response = await fetch(accessUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+          body: {
             targetUrl: 'https://login.daisycon.com/oauth/access-token',
             body: formData,
             headers: { 'Content-Type': 'application/json' }
-          })
+          }
         });
     
         const data = await response.json();

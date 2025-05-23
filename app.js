@@ -52,8 +52,8 @@ app.post('/proxy', express.json(), async (req, res) => {
     
     const response = await fetch(targetUrl, {
       method: 'POST',
-      headers: headers || { 'Content-Type': 'application/json' },
-      body: body 
+      headers: headers,
+      body: body
     });
 
     const data = await response.text();
