@@ -111,8 +111,8 @@ async function accessDaisycon(){
         const data = await response.json();
         // Handle the response (e.g., save access token)
         document.getElementById('accessResult').innerHTML = "Authentication successful!"
-        document.getElementById('accessToken').innerHTML = data.access_token
-        document.getElementById('refreshToken').innerHTML = data.refresh_token
+        document.getElementById('accessToken').innerHTML = "Access token: "+data.access_token
+        document.getElementById('refreshToken').innerHTML = "Refresh token: "+data.refresh_token
         document.getElementById('accessDaisyconBtn').disabled = true
 
         console.log('Success:', data);
