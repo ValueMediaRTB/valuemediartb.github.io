@@ -130,7 +130,7 @@ async function getCampaignMaterial(){
           body: JSON.stringify({
             targetUrl:'https://services.daisycon.com/publishers/470796/material/programs?page=1&per_page=5',
             headers: { 'accept': 'application/json',
-            'Authorization':'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJ1aWQiOjM3OTExOSwidXNnIjo2LCJwdWJsaXNoZXJzIjpbeyJpZCI6NDcwNzk2LCJzZXJ2aWNlX2dyb3VwcyI6NTJ9XSwiaWF0IjoxNzQ4MDA4MDQ1LCJleHAiOjE3NDgwMDk4NDUsImlzcyI6Im9hdXRoIiwiYXVkIjoiNzkwIn0.sXF57_sDMhC54nIQsAGyjnBaPrwnvsmkDpC0fRajxO2LqpxKxHV35D3vKYmW9vQU_G5XAoMFR62YlHplrhYiUw' },
+            'Authorization':'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJ1aWQiOjM3OTExOSwidXNnIjo2LCJwdWJsaXNoZXJzIjpbeyJpZCI6NDcwNzk2LCJzZXJ2aWNlX2dyb3VwcyI6NTJ9XSwiaWF0IjoxNzQ4MDA4MDQ1LCJleHAiOjE3NDgwMDk4NDUsImlzcyI6Im9hdXRoIiwiYXVkIjoiNzkwIn0.sXF57_sDMhC54nIQsAGyjnBaPrwnvsmkDpC0fRajxO2LqpxKxHV35D3vKYmW9vQU_G5XAoMFR62YlHplrhYiUw' },
             method:"GET"
             }),
           headers: { 'Content-Type': 'application/json' }

@@ -23,9 +23,8 @@
                 authLoaded();
                 getCampaignMaterial();
             });
-        // Extract token from URL hash (e.g., #token=XYZ)
         const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('code'); // Extracts "codulmeu" from ?code=codulmeu
+        const token = urlParams.get('code'); // 
         if (token) {
             document.getElementById('tokenProcessed').value = token
         }
