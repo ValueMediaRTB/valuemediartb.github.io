@@ -96,6 +96,7 @@ async function accessDaisycon(){
     }
     try {
         const response = await fetch('https://login.daisycon.com/oauth/access-token', {
+            mode: 'no-cors',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
