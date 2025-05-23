@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>OAuth Callback</title>
+  <script src="mainscripts.js" defer></script>
+  <title>ValueMedia Daisycon Auth</title>
   <script>
     // Extract token from URL hash (e.g., #token=XYZ)
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('code'); // Extracts "codulmeu" from ?code=codulmeu
     if (token) {
+      document.getElementById('codeVerificationInput').value = codeVerifier
+      document.getElementById('tokenProcessed').value = token
       // Send token to local Node.js server
       fetch(`https://22a2-91-132-4-72.ngrok-free.app/save-token?token=${token}`, {
         headers: {
@@ -25,7 +28,16 @@
   </script>
 </head>
 <body>
-  <p>Processing token... (you can close this window)</p>
-  <p id="tokenProcessed"></p>
+    <form id="daisyconForm">
+        <div>
+            <label style="margin:8px" for="tokenProcessed">Token:</label>
+            <input style="margin:8px" id="tokenProcessed" type="text" required>
+            <label style="margin:8px" for="codeVerificationInput">Code verification:</label>
+            <input style="margin:8px" id="codeVerificationInput" type="text" required>
+        </div>
+        <button style="margin:8px" type="button" onclick="accessDaisycon()">Access Daisycon API</button>
+    </form>
+    <div style="margin:8px" id="accessResult"></div>
+    <div style="margin:8px" id="accessTokens"></div>
 </body>
 </html>

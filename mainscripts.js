@@ -27,14 +27,15 @@ async function generateCodeChallenge(codeVerifier) {
         .replace(/\//g, '_');
 }
 
-(async function() {
 const codeVerifier = generateRandomString(getRandomInt(128));
+let clientID = 0
+(async function() {
 document.getElementById('codeVerifierContainer').innerHTML = "Code verifier: "+codeVerifier;
 const codeChallenge = await generateCodeChallenge(codeVerifier);
 
 window.authorizeDaisycon = function(){
     // Get form values
-    const clientID = document.getElementById('clientID').value;
+    clientID = document.getElementById('clientID').value;
     const redirectURI = 'https://valuemediartb.github.io/auth.html'
     
     // Validate inputs
@@ -56,4 +57,51 @@ window.authorizeDaisycon = function(){
     location.replace(authorizeUrl.toString())
 
 }; 
+window.accessDaisycon = async function(){
+    // Get form values
+    const token = document.getElementById('tokenProcessed').value;
+    const redirectURI = 'https://valuemediartb.github.io/auth.html'
+
+    // Validate inputs
+    if (!token) {
+        alert('Token is missing!');
+        return;
+    }
+    if(!redirectURI || !codeVerifier){
+        alert('CodeVerifier or redirectURI are null!');
+        return;
+    }
+
+    authorizeUrl = new URL('https://login.daisycon.com/oauth/access-token');
+    const formData = {'grant_type':'authorization_code',
+        'code':token,
+        'client_id':clientID,
+        'redirect_uri':redirectURI,
+        'code_verifier':codeVerifier
+    }
+    try {
+        const response = await fetch('https://login.daisycon.com/oauth/access-token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Success:', data);
+        
+        // Handle the response (e.g., save access token)
+        document.getElementById('accessResult').innerHTML = "Authentication successful!"
+        document.getElementById('accessTokens').innerHTML = data
+
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to authenticate: ' + error.message);
+    }
+}
 })();
