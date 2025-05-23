@@ -27,16 +27,31 @@ async function generateCodeChallenge(codeVerifier) {
         .replace(/\//g, '_');
 }
 
-let clientID = 0
-let codeVerifier = 0
-let codeChallenge = 0
+let codeVerifier;
+let codeChallenge;
+let clientID;
+
+async function initializeCodes() {
+    // Try to get from sessionStorage first
+    codeVerifier = sessionStorage.getItem('codeVerifier');
+    codeChallenge = sessionStorage.getItem('codeChallenge');
+    
+    // Generate new ones if they don't exist
+    if (!codeVerifier) {
+      codeVerifier = generateRandomString(getRandomInt(128));
+      sessionStorage.setItem('codeVerifier', codeVerifier);
+      
+      codeChallenge = await generateCodeChallenge(codeVerifier);
+      sessionStorage.setItem('codeChallenge', codeChallenge);
+    }
+  }
 
 async function indexLoaded() {
-    codeVerifier = generateRandomString(getRandomInt(128));
+    await initializeCodes();
     document.getElementById('codeVerifierContainer').innerHTML = "Code verifier: "+codeVerifier;
-    codeChallenge = await generateCodeChallenge(codeVerifier);
 }
 function authLoaded(){
+    codeVerifier = sessionStorage.getItem('codeVerifier');
     document.getElementById('codeVerificationInput').value = codeVerifier
 }
 
