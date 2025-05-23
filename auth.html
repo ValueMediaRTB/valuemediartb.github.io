@@ -8,9 +8,9 @@
 <body>
     <form id="daisyconAccessForm">
         <div style="display: grid; grid-template-columns: auto 1fr; align-items: center; margin:8px; gap: 8px">
-            <label style="grid-row: 1;" for="tokenProcessed">Token:</label>
+            <label style="grid-row: 1;" for="tokenProcessed">Token</label>
             <input style="width:100%; grid-row: 1;" id="tokenProcessed" type="text" required>
-            <label style="grid-row: 2;" for="codeVerificationInput">Code verification:</label>
+            <label style="grid-row: 2;" for="codeVerificationInput">Code verification</label>
             <input style="width:100%;grid-row: 2;" id="codeVerificationInput" type="text" required>
         </div>
         <button style="margin:8px" type="button" id="accessDaisyconBtn" onclick="accessDaisycon()">Access Daisycon API</button>
@@ -21,6 +21,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
                 authLoaded();
+                getCampaignMaterial();
             });
         // Extract token from URL hash (e.g., #token=XYZ)
         const urlParams = new URLSearchParams(window.location.search);

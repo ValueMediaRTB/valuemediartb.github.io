@@ -12,6 +12,8 @@ const limiter = rateLimit({
   message: 'Too many requests - please wait 1 second',
 });
 
+let accessToken;
+
 app.use((req, res, next) => {
   console.log('Received request:', req.method, req.url);
   next();
@@ -46,6 +48,21 @@ app.use((req, res, next) => {
 app.use(express.static('public'));
 
 // Proxy endpoint
+app.get('/proxy', express.json(), async (req, res) => {
+  try {
+    const { targetUrl, headers } = req.body;
+    
+    const response = await fetch(targetUrl, {
+      method: 'GET',
+      headers: headers
+    });
+
+    const data = await response.text();
+    res.status(response.status).send(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 app.post('/proxy', express.json(), async (req, res) => {
   try {
     const { targetUrl, body, headers } = req.body;
