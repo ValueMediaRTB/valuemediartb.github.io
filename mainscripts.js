@@ -95,6 +95,7 @@ async function accessDaisycon(){
         'code_verifier':codeVerifier
     }
     try {
+        console.log(JSON.stringify(formData))
         const response = await fetch('https://login.daisycon.com/oauth/access-token', {
             mode: 'no-cors',
             method: 'POST',
