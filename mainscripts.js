@@ -44,6 +44,7 @@ function authLoaded(){
     codeVerifier = sessionStorage.getItem('codeVerifier');
     clientID = sessionStorage.getItem('clientID');
     document.getElementById('codeVerificationInput').value = codeVerifier
+    document.getElementById('accessDaisyconBtn').disabled = false
     console.log("authLoaded() called")
 }
 
@@ -111,6 +112,7 @@ async function accessDaisycon(){
         // Handle the response (e.g., save access token)
         document.getElementById('accessResult').innerHTML = "Authentication successful!"
         document.getElementById('accessTokens').innerHTML = "<div style=\"margin:8px\">Access token: "+data.access_token+"</div><div style=\"margin:8px\"> Refresh_token: "+data.refresh_token+"</div>"
+        document.getElementById('accessDaisyconBtn').disabled = true
 
         console.log('Success:', data);
       } catch (error) {
