@@ -41,16 +41,19 @@ async function initializeCodes() {
 
 async function indexLoaded() {
     await initializeCodes();
+    sessionStorage.setItem('clientID', 0);
     document.getElementById('codeVerifierContainer').innerHTML = "Code verifier: "+codeVerifier;
 }
 function authLoaded(){
     codeVerifier = sessionStorage.getItem('codeVerifier');
+    clientID = sessionStorage.getItem('clientID');
     document.getElementById('codeVerificationInput').value = codeVerifier
 }
 
 function authorizeDaisycon(){
     // Get form values
     clientID = document.getElementById('clientID').value;
+    sessionStorage.setItem('clientID', clientID);
     const redirectURI = 'https://valuemediartb.github.io/auth.html'
     
     // Validate inputs
