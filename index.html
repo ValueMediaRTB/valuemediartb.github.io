@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="mainscripts.js" defer></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            indexLoaded();
+        });
+    </script>
     <title>Value Media</title>
     <form id="daisyconForm">
         <div>
             <div style="margin:8px" id="codeVerifierContainer"></div>
             <label style="margin:8px" for="clientID">Client ID:</label>
-            <input style="margin:8px;  width:150px" id="clientID" type="text" required>
+            <input style="margin:8px;  width:250px" id="clientID" type="text" required>
         </div>
         <button style="margin:8px" type="button" onclick="authorizeDaisycon()">Authorize Daisycon</button>
     </form>

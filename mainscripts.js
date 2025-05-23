@@ -27,13 +27,20 @@ async function generateCodeChallenge(codeVerifier) {
         .replace(/\//g, '_');
 }
 
-(async function() {
 let clientID = 0
-const codeVerifier = generateRandomString(getRandomInt(128));
-document.getElementById('codeVerifierContainer').innerHTML = "Code verifier: "+codeVerifier;
-const codeChallenge = await generateCodeChallenge(codeVerifier);
+let codeVerifier = 0
+let codeChallenge = 0
 
-window.authorizeDaisycon = function(){
+async function indexLoaded() {
+    codeVerifier = generateRandomString(getRandomInt(128));
+    document.getElementById('codeVerifierContainer').innerHTML = "Code verifier: "+codeVerifier;
+    codeChallenge = await generateCodeChallenge(codeVerifier);
+}
+function authLoaded(){
+    document.getElementById('codeVerificationInput').value = codeVerifier
+}
+
+function authorizeDaisycon(){
     // Get form values
     clientID = document.getElementById('clientID').value;
     const redirectURI = 'https://valuemediartb.github.io/auth.html'
@@ -57,7 +64,7 @@ window.authorizeDaisycon = function(){
     location.replace(authorizeUrl.toString())
 
 }; 
-window.accessDaisycon = async function(){
+async function accessDaisycon(){
     // Get form values
     const token = document.getElementById('tokenProcessed').value;
     const redirectURI = 'https://valuemediartb.github.io/auth.html'
@@ -104,4 +111,3 @@ window.accessDaisycon = async function(){
         alert('Failed to authenticate: ' + error.message);
     }
 }
-})();
