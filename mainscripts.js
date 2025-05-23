@@ -105,9 +105,11 @@ async function accessDaisycon(){
     try {
         console.log(JSON.stringify(formData))
         const response = await fetch('https://login.daisycon.com/oauth/access-token', {
+            mode: 'no-cors',
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0'
             },
             body: JSON.stringify(formData)
         });
