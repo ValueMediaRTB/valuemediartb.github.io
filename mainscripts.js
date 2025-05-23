@@ -91,6 +91,7 @@ async function accessDaisycon(){
     const formData = {'grant_type':'authorization_code',
         'code':token,
         'client_id':clientID,
+        'client_secret':'',
         'redirect_uri':redirectURI,
         'code_verifier':codeVerifier
     }
