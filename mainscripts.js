@@ -68,7 +68,18 @@ function authLoaded(){
     serverURL = sessionStorage.getItem('serverURL');
     access_token = sessionStorage.getItem('access_token');
     refresh_token = sessionStorage.getItem('refresh_token');
-    if(sessionStorage.getItem('access_token')){
+    if(!access_token){
+        document.getElementById('codeVerificationInput').value = codeVerifier;
+        document.getElementById('accessDaisyconBtn').disabled = false;
+        document.getElementById('getCampaignMaterialBtn').disabled = true;
+        const urlParams = new URLSearchParams(window.location.search);
+        token = urlParams.get('code'); ///////
+        if (token) {
+            document.getElementById('tokenProcessed').value = token
+        }
+    }
+    else
+    {
         document.getElementById('accessToken').innerHTML = "Access token: "+access_token;
         document.getElementById('refreshToken').innerHTML = "Refresh token: "+refresh_token;
         document.getElementById('accessDaisyconBtn').disabled = true;
@@ -88,16 +99,6 @@ function authLoaded(){
         noneOpt.textContent = 'All';
         noneOpt.selected = true;
         mediaIDInput.prepend(noneOpt);
-    }
-    else{
-        document.getElementById('codeVerificationInput').value = codeVerifier;
-        document.getElementById('accessDaisyconBtn').disabled = false;
-        document.getElementById('getCampaignMaterialBtn').disabled = true;
-        const urlParams = new URLSearchParams(window.location.search);
-        token = urlParams.get('code'); ///////
-        if (token) {
-            document.getElementById('tokenProcessed').value = token
-        }
     }
     console.log("authLoaded() called")
 }
