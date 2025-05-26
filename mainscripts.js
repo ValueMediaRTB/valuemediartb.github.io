@@ -214,10 +214,12 @@ async function refreshAccessDaisycon(){
 async function getCampaignMaterial(){
     if(access_token){
         try {
+            pageNr = document.getElementById('pageInput').value;
+            pageSize = document.getElementById('pageSizeInput').value;
             const response = await fetch(`${serverURL}/proxy` , {
             method: 'POST',
             body: JSON.stringify({
-                targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/programs?page=1&per_page=100`,
+                targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/programs?page=${pageNr}&per_page=${pageSize}`,
                 headers: { 'accept': 'application/json',
                 'Authorization':'Bearer '+access_token },
                 method:"GET"
@@ -240,10 +242,12 @@ async function getCampaignMaterial(){
 async function getPrograms(){
     if(access_token){
         try {
+            pageNr = document.getElementById('pageInput').value;
+            pageSize = document.getElementById('pageSizeInput').value;
             const response = await fetch(`${serverURL}/proxy` , {
             method: 'POST',
             body: JSON.stringify({
-                targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs?order_direction=asc&page=1&per_page=1000`,
+                targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs?order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
                 headers: { 'accept': 'application/json',
                 'Authorization':'Bearer '+access_token },
                 method:"GET"
