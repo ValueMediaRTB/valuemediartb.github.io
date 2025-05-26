@@ -122,7 +122,7 @@ async function accessDaisycon(){
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            targetUrl: 'https://login.daisycon.com/oauth/access-token',
+            targetUrl: accessUrl,
             body: formData,
             headers: { 'Content-Type': 'application/json' },
             method:"POST"
@@ -131,11 +131,14 @@ async function accessDaisycon(){
     
         const data = await response.json();
         // Handle the response (e.g., save access token)
-        document.getElementById('accessResult').innerHTML = "Authentication successful!"
-        document.getElementById('accessToken').innerHTML = "Access token: "+data.access_token
-        document.getElementById('refreshToken').innerHTML = "Refresh token: "+data.refresh_token
-        document.getElementById('accessDaisyconBtn').disabled = true
-        document.getElementById('getCampaignMaterialBtn').disabled = false
+        document.getElementById('accessResult').innerHTML = "Authentication successful!";
+        document.getElementById('accessToken').innerHTML = "Access token: "+data.access_token;
+        document.getElementById('refreshToken').innerHTML = "Refresh token: "+data.refresh_token;
+        document.getElementById('accessDaisyconBtn').disabled = true;
+        document.getElementById('getCampaignMaterialBtn').disabled = false;
+
+        access_token = data.access_token;
+        refresh_token = data.refresh_token;
 
         console.log('Success:', data);
       } catch (error) {
@@ -145,29 +148,24 @@ async function accessDaisycon(){
 async function refreshAccessDaisycon(){
 
     // Validate inputs
-    if (!token) {
-        alert('Token is missing!');
-        return;
-    }
-    if(!redirectURI || !codeVerifier){
-        alert('CodeVerifier or redirectURI are null!');
+    if (!refresh_token) {
+        alert('Refresh token is missing!');
         return;
     }
 
     accessUrl = 'https://login.daisycon.com/oauth/access-token';
     const formData = {'grant_type':'refresh_token',
-        'code':token,
+        'refresh_token':refresh_token,
         'client_id':clientID,
         'client_secret':'',
-        'redirect_uri':redirectURI,
-        'code_verifier':codeVerifier
+        'redirect_uri':redirectURI
     }
     try {
         const response = await fetch('https://e9ff-91-132-4-72.ngrok-free.app/proxy' , {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            targetUrl: 'https://login.daisycon.com/oauth/access-token',
+            targetUrl: accessUrl,
             body: formData,
             headers: { 'Content-Type': 'application/json' },
             method:"POST"
@@ -176,11 +174,14 @@ async function refreshAccessDaisycon(){
     
         const data = await response.json();
         // Handle the response (e.g., save access token)
-        document.getElementById('accessResult').innerHTML = "Authentication successful!"
+        document.getElementById('accessResult').innerHTML = "Refresh successful!"
         document.getElementById('accessToken').innerHTML = "Access token: "+data.access_token
         document.getElementById('refreshToken').innerHTML = "Refresh token: "+data.refresh_token
         document.getElementById('accessDaisyconBtn').disabled = true
         document.getElementById('getCampaignMaterialBtn').disabled = false
+
+        access_token = data.access_token;
+        refresh_token = data.refresh_token;
 
         console.log('Success:', data);
       } catch (error) {
@@ -189,14 +190,14 @@ async function refreshAccessDaisycon(){
 }
 
 async function getCampaignMaterial(){
-    if(token){
+    if(access_token){
         try {
             const response = await fetch(`${serverURL}/proxy` , {
             method: 'POST',
             body: JSON.stringify({
                 targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/programs?page=1&per_page=5`,
                 headers: { 'accept': 'application/json',
-                'Authorization':'Bearer '+token },
+                'Authorization':'Bearer '+access_token },
                 method:"GET"
                 }),
             headers: { 'Content-Type': 'application/json' }
@@ -204,10 +205,8 @@ async function getCampaignMaterial(){
         
             const data = await response.json();
             // Handle the response (e.g., save access token)
-            document.getElementById('accessResult').innerHTML = "Authentication successful!"
-            document.getElementById('accessToken').innerHTML = "Access token: "+data.access_token
-            document.getElementById('refreshToken').innerHTML = "Refresh token: "+data.refresh_token
-            document.getElementById('accessDaisyconBtn').disabled = true
+            document.getElementById('resultTitle').innerHTML = "Get campaign material successful!"
+            document.getElementById('resultContainer').innerHTML = "Result: "+data
 
             console.log('Success:', data);
         } catch (error) {
