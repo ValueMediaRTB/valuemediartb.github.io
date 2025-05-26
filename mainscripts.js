@@ -195,7 +195,7 @@ async function getCampaignMaterial(){
             const response = await fetch(`${serverURL}/proxy` , {
             method: 'POST',
             body: JSON.stringify({
-                targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/programs?page=1&per_page=5`,
+                targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/programs?page=1&per_page=100`,
                 headers: { 'accept': 'application/json',
                 'Authorization':'Bearer '+access_token },
                 method:"GET"
