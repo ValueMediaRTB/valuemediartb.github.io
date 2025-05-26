@@ -258,7 +258,8 @@ async function getPrograms(){
             headers: { 'Content-Type': 'application/json' }
             });
         
-            const data = await response.json();
+
+            const data = await response.text();
             // Handle the response (e.g., save access token)
             document.getElementById('resultTitle').innerHTML = "Get campaign material successful!"
             document.getElementById('resultContainer').innerHTML = "Result: "+JSON.parse(data)
