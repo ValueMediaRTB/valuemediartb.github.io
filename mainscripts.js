@@ -53,6 +53,7 @@ async function indexLoaded() {
 function authLoaded(){
     codeVerifier = sessionStorage.getItem('codeVerifier');
     clientID = sessionStorage.getItem('clientID');
+    serverURL = sessionStorage.getItem('serverURL')
     document.getElementById('codeVerificationInput').value = codeVerifier
     document.getElementById('accessDaisyconBtn').disabled = false
     document.getElementById('getCampaignMaterialBtn').disabled = true
