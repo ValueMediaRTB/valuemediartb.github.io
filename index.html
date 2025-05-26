@@ -3,21 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="mainscripts.js" defer></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            indexLoaded();
-        });
-    </script>
     <title>Value Media</title>
     <form id="daisyconForm">
         <div style="display: grid; grid-template-columns: auto 1fr; align-items: center; margin:8px; gap: 8px">
             <div id="codeVerifierContainer" style="grid-column: 1 / span 2;"></div>
             <label for="clientID" style="grid-row: 2;">Client ID:</label>
             <input style="width:250px; grid-row: 2;" id="clientID" type="text" required>
+            <label for="serverURLInput" style="grid-row: 2;">Server URL:</label>
+            <input style="width:250px; grid-row: 2;" id="serverURLInput" type="text" required>
         </div>
         <button id="authorizeDaisyconBtn" style="margin:8px" type="button" onclick="authorizeDaisycon()">Authorize Daisycon</button>
     </form>
+    <script src="mainscripts.js" defer></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            indexLoaded();
+        });
+    </script>
 </body>
 
 </html>
