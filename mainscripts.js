@@ -243,7 +243,7 @@ async function getPrograms(){
             const response = await fetch(`${serverURL}/proxy` , {
             method: 'POST',
             body: JSON.stringify({
-                targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs`,
+                targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs?order_direction=asc&page=1&per_page=1000`,
                 headers: { 'accept': 'application/json',
                 'Authorization':'Bearer '+access_token },
                 method:"GET"
