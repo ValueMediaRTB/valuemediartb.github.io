@@ -253,7 +253,7 @@ async function getPrograms(){
                 headers: { 'accept': 'application/json',
                 'Authorization':'Bearer '+access_token },
                 method:"GET"
-                //,writeToFile: 1 use this in production mode
+                ////,writeToFile: 1 use this in production mode
                 }),
             headers: { 'Content-Type': 'application/json' }
             });
