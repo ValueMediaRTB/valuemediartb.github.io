@@ -65,9 +65,9 @@ app.post('/proxy', express.json(), async (req, res) => {
       body: JSON.stringify(body)
     });
     }
-
+    console.log(writeToFile);
     const data = await response.text();
-    if(writeToFile == true){
+    if(writeToFile == 1){ 
       fs.writeFile('result.txt', `${data}\n`, (err) => {
         if (err) {
           console.error('Error writing result to file:', err);

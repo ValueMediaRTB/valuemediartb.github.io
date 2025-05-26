@@ -254,7 +254,7 @@ async function getPrograms(){
                 method:"GET"
                 }),
             headers: { 'Content-Type': 'application/json' },
-            writeToFile: true
+            writeToFile: 1
             });
         
             const data = await response.json();
