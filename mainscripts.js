@@ -262,7 +262,7 @@ async function getPrograms(){
             const data = await response.text();
             // Handle the response (e.g., save access token)
             document.getElementById('resultTitle').innerHTML = "Get campaign material successful!"
-            document.getElementById('resultContainer').innerHTML = "Result: "+JSON.parse(data)
+            document.getElementById('resultContainer').innerHTML = "Result: "+data
 
             console.log('Success:', data);
         } catch (error) {
