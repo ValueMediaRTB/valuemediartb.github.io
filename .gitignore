@@ -1,2 +1,3 @@
 # Ignore tokens.txt in current directory
 /tokens.txt
+/result.txt

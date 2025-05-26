@@ -65,7 +65,6 @@ app.post('/proxy', express.json(), async (req, res) => {
       body: JSON.stringify(body)
     });
     }
-    console.log(writeToFile);
     const data = await response.text();
     if(writeToFile == 1){ 
       fs.writeFile('result.txt', `${data}\n`, (err) => {
@@ -74,7 +73,8 @@ app.post('/proxy', express.json(), async (req, res) => {
           return res.status(500).send('Error storing to file');
         }
         console.log('Result saved!');
-        res.status(response.status).send('Saved result to \"result.txt\" on server!');
+        msg = {"message":"{Saved result to \"result.txt\" on server!}"};
+        res.status(response.status).send(msg);
       });
     }
     else{

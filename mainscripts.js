@@ -222,8 +222,8 @@ async function getCampaignMaterial(){
                 targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/programs?page=${pageNr}&per_page=${pageSize}`,
                 headers: { 'accept': 'application/json',
                 'Authorization':'Bearer '+access_token },
-                method:"GET",
-                writeToFile: 1
+                method:"GET"
+                //,writeToFile: 1 use this in production mode
                 }),
             headers: { 'Content-Type': 'application/json' }
             });
@@ -245,14 +245,15 @@ async function getPrograms(){
         try {
             pageNr = document.getElementById('pageInput').value || 1;
             pageSize = document.getElementById('pageSizeInput').value || 1000;
+            mediaID = document.getElementById('mediaIDInput').value || 0;
             const response = await fetch(`${serverURL}/proxy` , {
             method: 'POST',
             body: JSON.stringify({
-                targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs?order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
+                targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs?media_id=${mediaID}order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
                 headers: { 'accept': 'application/json',
                 'Authorization':'Bearer '+access_token },
-                method:"GET",
-                writeToFile: 1
+                method:"GET"
+                //,writeToFile: 1 use this in production mode
                 }),
             headers: { 'Content-Type': 'application/json' }
             });
@@ -260,7 +261,7 @@ async function getPrograms(){
             const data = await response.json();
             // Handle the response (e.g., save access token)
             document.getElementById('resultTitle').innerHTML = "Get campaign material successful!"
-            document.getElementById('resultContainer').innerHTML = "Result: "+data
+            document.getElementById('resultContainer').innerHTML = "Result: "+JSON.parse(data)
 
             console.log('Success:', data);
         } catch (error) {
