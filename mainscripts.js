@@ -53,10 +53,10 @@ async function indexLoaded() {
 function authLoaded(){
     codeVerifier = sessionStorage.getItem('codeVerifier');
     clientID = sessionStorage.getItem('clientID');
-    serverURL = sessionStorage.getItem('serverURL')
-    document.getElementById('codeVerificationInput').value = codeVerifier
-    document.getElementById('accessDaisyconBtn').disabled = false
-    document.getElementById('getCampaignMaterialBtn').disabled = true
+    serverURL = sessionStorage.getItem('serverURL');
+    document.getElementById('codeVerificationInput').value = codeVerifier;
+    document.getElementById('accessDaisyconBtn').disabled = false;
+    document.getElementById('getCampaignMaterialBtn').disabled = true;
     const urlParams = new URLSearchParams(window.location.search);
     token = urlParams.get('code'); // 
     if (token) {
