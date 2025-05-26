@@ -161,7 +161,7 @@ async function refreshAccessDaisycon(){
         'redirect_uri':redirectURI
     }
     try {
-        const response = await fetch('https://e9ff-91-132-4-72.ngrok-free.app/proxy' , {
+        const response = await fetch(`${serverURL}/proxy` , {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -196,6 +196,32 @@ async function getCampaignMaterial(){
             method: 'POST',
             body: JSON.stringify({
                 targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/programs?page=1&per_page=5`,
+                headers: { 'accept': 'application/json',
+                'Authorization':'Bearer '+access_token },
+                method:"GET"
+                }),
+            headers: { 'Content-Type': 'application/json' }
+            });
+        
+            const data = await response.json();
+            // Handle the response (e.g., save access token)
+            document.getElementById('resultTitle').innerHTML = "Get campaign material successful!"
+            document.getElementById('resultContainer').innerHTML = "Result: "+data
+
+            console.log('Success:', data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+}
+
+async function getPrograms(){
+    if(access_token){
+        try {
+            const response = await fetch(`${serverURL}/proxy` , {
+            method: 'POST',
+            body: JSON.stringify({
+                targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs`,
                 headers: { 'accept': 'application/json',
                 'Authorization':'Bearer '+access_token },
                 method:"GET"
