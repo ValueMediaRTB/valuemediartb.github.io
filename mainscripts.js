@@ -28,6 +28,7 @@ let token;
 let access_token;
 let refresh_token;
 let serverURL;
+let media;
 const publisherID = 470796;
 const redirectURI = 'https://valuemediartb.github.io/auth.html'
 
@@ -69,6 +70,21 @@ function authLoaded(){
         document.getElementById('refreshToken').innerHTML = "Refresh token: "+refresh_token;
         document.getElementById('accessDaisyconBtn').disabled = true;
         document.getElementById('getCampaignMaterialBtn').disabled = false;
+        if(!media){
+            getMedias();
+        }
+        let mediaIDInput = document.getElementById('mediaIDInput');
+        media.forEach(option => {
+            const optElem = document.createElement('option');
+            optElem.value = option.id;
+            optElem.textContent = `ID: ${option.id}, Name: ${option.name}`;
+            mediaIDInput.appendChild(optElem);
+        });
+        const noneOpt = document.createElement('option');
+        noneOpt.value = '';
+        noneOpt.textContent = 'All';
+        noneOpt.selected = true;
+        mediaIDInput.prepend(noneOpt);
     }
     else{
         document.getElementById('codeVerificationInput').value = codeVerifier;
@@ -246,10 +262,11 @@ async function getPrograms(){
             pageNr = document.getElementById('pageInput').value || 1;
             pageSize = document.getElementById('pageSizeInput').value || 1000;
             mediaID = document.getElementById('mediaIDInput').value || 0;
+            mediaIDParam = ( mediaID != 0 ? "media_id=${mediaID}&" : "")
             const response = await fetch(`${serverURL}/proxy` , {
             method: 'POST',
             body: JSON.stringify({
-                targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs?media_id=${mediaID}order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
+                targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs?${mediaIDParam}order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
                 headers: { 'accept': 'application/json',
                 'Authorization':'Bearer '+access_token },
                 method:"GET"
@@ -263,6 +280,81 @@ async function getPrograms(){
             // Handle the response (e.g., save access token)
             document.getElementById('resultTitle').innerHTML = "Get campaign material successful!"
             document.getElementById('resultContainer').innerHTML = "Result in console"
+
+            console.log('Success:', data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+}
+async function getMedias(){
+    if(access_token){
+        try {
+            pageNr = document.getElementById('pageInput').value || 1;
+            pageSize = document.getElementById('pageSizeInput').value || 1000;
+            const response = await fetch(`${serverURL}/proxy` , {
+            method: 'POST',
+            body: JSON.stringify({
+                targetUrl:`https://services.daisycon.com/publishers/${publisherID}/media`,
+                headers: { 'accept': 'application/json',
+                'Authorization':'Bearer '+access_token },
+                method:"GET"
+                ////,writeToFile: 1 use this in production mode
+                }),
+            headers: { 'Content-Type': 'application/json' }
+            });
+        
+
+            const data = await response.json();
+            media = data;
+            // Handle the response (e.g., save access token)
+            document.getElementById('resultTitle').innerHTML = "Get medias successful!"
+
+            console.log('Success:', data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+}
+
+async function exportOffers(){
+    if(access_token){
+        try {
+            pageNr = document.getElementById('pageInput').value || 1;
+            pageSize = document.getElementById('pageSizeInput').value || 1000;
+            const response = await fetch(`${serverURL}/export` , {
+            method: 'POST',
+            body: JSON.stringify({
+                commands : [
+                    {
+                        commandName:"getMedia",
+                        targetUrl:`https://services.daisycon.com/publishers/${publisherID}/media`,
+                        headers: { 'accept': 'application/json',
+                        'Authorization':'Bearer '+access_token },
+                        method:"GET"
+                        ////,writeToFile: 1 use this in production mode
+                    },
+                    {
+                        commandName:"getProducts",
+                        targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs`,
+                        headers: { 'accept': 'application/json',
+                        'Authorization':'Bearer '+access_token },
+                        method:"GET"
+                        ////,writeToFile: 1 use this in production mode
+                    },
+                    {
+                        commandName:"exportOffers"
+                    }
+                ]
+                }),
+            headers: { 'Content-Type': 'application/json' }
+            });
+        
+
+            const data = await response.text();
+            // Handle the response (e.g., save access token)
+            document.getElementById('resultTitle').innerHTML = "Export offers successful!"
+            document.getElementById('resultContainer').innerHTML = "Result stored in result.csv in server."
 
             console.log('Success:', data);
         } catch (error) {

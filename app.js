@@ -14,6 +14,31 @@ const limiter = rateLimit({
 
 let accessToken;
 
+async function sendRequest(req){
+  try {
+    const { targetUrl, body, headers,method,writeToFile } = req;
+    let response;
+    if(method == 'GET'){
+      response = await fetch(targetUrl, {
+        method: method,
+        headers: headers
+      });
+    }
+    else if(method =="POST"){
+      response = await fetch(targetUrl, {
+      method: method,
+      headers: headers,
+      body: JSON.stringify(body)
+    });
+    }
+    let data = await response.text();
+    return data;
+  }
+  catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
 app.use((req, res, next) => {
   console.log('Received request:', req.method, req.url);
   next();
@@ -47,25 +72,54 @@ app.use((req, res, next) => {
 // Serve static files (like your GitHub Pages HTML)
 app.use(express.static('public'));
 
+
+app.post('/export',express.json(),async (req,res) => {
+  try {
+    const { commands } = req.body;
+    let media = [];
+    let programs = [];
+    commands.forEach(command => {
+      let page = 1, pageSize = 1000;
+      if(command.commandName == "getMedia"){
+        do{
+          trgtUrl = command.targetUrl + `?page=${page}&per_page=${pageSize}`;
+          page++;
+          crt_media = sendRequest({targetUrl:trgtUrl,headers:command.headers,method:command.method});
+          crt_media.forEach(med => media.push(med.id));
+        }
+        while(crt_media.length == pageSize);
+      }
+      else if(command.commandName = "getProducts"){
+        media.forEach(med => {
+          page = 1;
+          pageSize = 1000;
+          do{
+            trgtUrl = command.targetUrl +  `?media_id=${med}order_direction=asc&page=${page}&per_page=${pageSize}`;
+            page++;
+            program = sendRequest({targetUrl:trgtUrl,headers:command.headers,method:command.method});
+            programs.push(program);
+          } while(program.length == pageSize);
+        })
+      }
+      else if(command.commandName == "exportOffers"){
+        fs.writeFile('daisyconOffers.csv',programs.map(prg => prg.display_url.join('\n')),(err) => {if (err) {
+          console.error('Error in /export: Failed writing result to file:', err);
+          return res.status(500).send('Error storing to file');
+        }
+      });
+      }
+    })
+    res.status(response.status).send("OK");
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 // Proxy endpoint
 app.post('/proxy', express.json(), async (req, res) => {
-  try {
-    const { targetUrl, body, headers,method,writeToFile } = req.body;
-    let response;
-    if(method == 'GET'){
-      response = await fetch(targetUrl, {
-        method: method,
-        headers: headers
-      });
-    }
-    else if(method =="POST"){
-      response = await fetch(targetUrl, {
-      method: method,
-      headers: headers,
-      body: JSON.stringify(body)
-    });
-    }
-    const data = await response.text();
+  try{
+    const data = sendRequest(req)
     if(writeToFile == 1){ 
       fs.writeFile('result.txt', `${data}\n`, (err) => {
         if (err) {
