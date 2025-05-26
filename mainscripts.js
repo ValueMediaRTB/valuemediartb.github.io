@@ -41,26 +41,44 @@ async function initializeCodes() {
 
 async function indexLoaded() {
     await initializeCodes();
-    document.getElementById('authorizeDaisyconBtn').disabled = false;
-    sessionStorage.setItem('clientID', 0);
-    serverURL = sessionStorage.getItem('serverURL')
-    if(serverURL){
-        document.getElementById('serverURLInput').value = serverURL;
+
+    if(sessionStorage.getItem('access_token')){
+        accessGranted = new URL('https://valuemediartb.github.io/auth.html');
+        location.replace(accessGranted.toString())
     }
-    document.getElementById('codeVerifierContainer').innerHTML = "Code verifier: "+codeVerifier;
+    else{
+        document.getElementById('authorizeDaisyconBtn').disabled = false;
+        sessionStorage.setItem('clientID', 0);
+        serverURL = sessionStorage.getItem('serverURL')
+        if(serverURL){
+            document.getElementById('serverURLInput').value = serverURL;
+        }
+        document.getElementById('codeVerifierContainer').innerHTML = "Code verifier: "+codeVerifier;
+    }
+    
     console.log("indexLoaded() called")
 }
 function authLoaded(){
     codeVerifier = sessionStorage.getItem('codeVerifier');
     clientID = sessionStorage.getItem('clientID');
     serverURL = sessionStorage.getItem('serverURL');
-    document.getElementById('codeVerificationInput').value = codeVerifier;
-    document.getElementById('accessDaisyconBtn').disabled = false;
-    document.getElementById('getCampaignMaterialBtn').disabled = true;
-    const urlParams = new URLSearchParams(window.location.search);
-    token = urlParams.get('code'); ///////
-    if (token) {
-        document.getElementById('tokenProcessed').value = token
+    access_token = sessionStorage.getItem('access_token');
+    refresh_token = sessionStorage.getItem('refresh_token');
+    if(sessionStorage.getItem('access_token')){
+        document.getElementById('accessToken').innerHTML = "Access token: "+access_token;
+        document.getElementById('refreshToken').innerHTML = "Refresh token: "+refresh_token;
+        document.getElementById('accessDaisyconBtn').disabled = true;
+        document.getElementById('getCampaignMaterialBtn').disabled = false;
+    }
+    else{
+        document.getElementById('codeVerificationInput').value = codeVerifier;
+        document.getElementById('accessDaisyconBtn').disabled = false;
+        document.getElementById('getCampaignMaterialBtn').disabled = true;
+        const urlParams = new URLSearchParams(window.location.search);
+        token = urlParams.get('code'); ///////
+        if (token) {
+            document.getElementById('tokenProcessed').value = token
+        }
     }
     console.log("authLoaded() called")
 }
@@ -139,6 +157,8 @@ async function accessDaisycon(){
 
         access_token = data.access_token;
         refresh_token = data.refresh_token;
+        sessionStorage.setItem('access_token',access_token);
+        sessionStorage.setItem('refresh_token',refresh_token);
 
         console.log('Success:', data);
       } catch (error) {
@@ -182,6 +202,8 @@ async function refreshAccessDaisycon(){
 
         access_token = data.access_token;
         refresh_token = data.refresh_token;
+        sessionStorage.setItem('access_token',access_token);
+        sessionStorage.setItem('refresh_token',refresh_token);
 
         console.log('Success:', data);
       } catch (error) {
