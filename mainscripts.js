@@ -45,7 +45,8 @@ async function indexLoaded() {
 
     access_token = sessionStorage.getItem('access_token');
     refresh_token = sessionStorage.getItem('refresh_token');
-    if(access_token && refresh_token){
+    let auatoken;
+    if(!access_token || !refresh_token){
         accessGranted = new URL('https://valuemediartb.github.io/auth.html');
         location.replace(accessGranted.toString())
     }
