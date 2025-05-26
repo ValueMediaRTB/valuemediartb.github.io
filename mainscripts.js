@@ -243,8 +243,8 @@ async function getCampaignMaterial(){
 async function getPrograms(){
     if(access_token){
         try {
-            pageNr = document.getElementById('pageInput').value;
-            pageSize = document.getElementById('pageSizeInput').value;
+            pageNr = document.getElementById('pageInput').value || 1;
+            pageSize = document.getElementById('pageSizeInput').value || 1000;
             const response = await fetch(`${serverURL}/proxy` , {
             method: 'POST',
             body: JSON.stringify({
