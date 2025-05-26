@@ -222,10 +222,10 @@ async function getCampaignMaterial(){
                 targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/programs?page=${pageNr}&per_page=${pageSize}`,
                 headers: { 'accept': 'application/json',
                 'Authorization':'Bearer '+access_token },
-                method:"GET"
+                method:"GET",
+                writeToFile: 1
                 }),
-            headers: { 'Content-Type': 'application/json' },
-            writeToFile: true
+            headers: { 'Content-Type': 'application/json' }
             });
         
             const data = await response.json();
@@ -251,10 +251,10 @@ async function getPrograms(){
                 targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs?order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
                 headers: { 'accept': 'application/json',
                 'Authorization':'Bearer '+access_token },
-                method:"GET"
+                method:"GET",
+                writeToFile: 1
                 }),
-            headers: { 'Content-Type': 'application/json' },
-            writeToFile: 1
+            headers: { 'Content-Type': 'application/json' }
             });
         
             const data = await response.json();
