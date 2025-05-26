@@ -224,7 +224,8 @@ async function getCampaignMaterial(){
                 'Authorization':'Bearer '+access_token },
                 method:"GET"
                 }),
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
+            writeToFile: true
             });
         
             const data = await response.json();
@@ -252,7 +253,8 @@ async function getPrograms(){
                 'Authorization':'Bearer '+access_token },
                 method:"GET"
                 }),
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
+            writeToFile: true
             });
         
             const data = await response.json();

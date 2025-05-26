@@ -50,7 +50,7 @@ app.use(express.static('public'));
 // Proxy endpoint
 app.post('/proxy', express.json(), async (req, res) => {
   try {
-    const { targetUrl, body, headers,method } = req.body;
+    const { targetUrl, body, headers,method,writeToFile } = req.body;
     let response;
     if(method == 'GET'){
       response = await fetch(targetUrl, {
@@ -67,7 +67,19 @@ app.post('/proxy', express.json(), async (req, res) => {
     }
 
     const data = await response.text();
-    res.status(response.status).send(data);
+    if(writeToFile == true){
+      fs.writeFile('result.txt', `${data}\n`, (err) => {
+        if (err) {
+          console.error('Error writing result to file:', err);
+          return res.status(500).send('Error storing to file');
+        }
+        console.log('Result saved!');
+        res.status(response.status).send('Saved result to \"result.txt\" on server!');
+      });
+    }
+    else{
+      res.status(response.status).send(data);
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
