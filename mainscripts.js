@@ -366,7 +366,7 @@ async function exportOffers(){
         });
     
 
-        const data = await response.text();
+        const data = await response.json();
         // Handle the response (e.g., save access token)
         document.getElementById('resultTitle').innerHTML = "Export offers successful!"
         document.getElementById('resultContainer').innerHTML = "Result stored in result.csv in server."
