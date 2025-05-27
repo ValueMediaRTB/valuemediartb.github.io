@@ -46,11 +46,7 @@ async function indexLoaded() {
     access_token = sessionStorage.getItem('access_token');
     refresh_token = sessionStorage.getItem('refresh_token');
     let auatoken;
-    if(!access_token || !refresh_token){
-        accessGranted = new URL('https://valuemediartb.github.io/auth.html');
-        location.replace(accessGranted.toString())
-    }
-    else{
+    if(!access_token  || access_token == "undefined" || !refresh_token  || refresh_token == "undefined"){
         document.getElementById('authorizeDaisyconBtn').disabled = false;
         sessionStorage.setItem('clientID', 0);
         serverURL = sessionStorage.getItem('serverURL')
@@ -58,6 +54,10 @@ async function indexLoaded() {
             document.getElementById('serverURLInput').value = serverURL;
         }
         document.getElementById('codeVerifierContainer').innerHTML = "Code verifier: "+codeVerifier;
+    }
+    else{
+        accessGranted = new URL('https://valuemediartb.github.io/auth.html');
+        location.replace(accessGranted.toString())
     }
     
     console.log("indexLoaded() called")
