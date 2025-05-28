@@ -1,4 +1,4 @@
-import * as utils from '/../../utils.js';
+import * as utils from '/public/utils.js';
 
 function generateRandomString(length) {
 	let randomString = '';
