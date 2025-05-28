@@ -30,7 +30,7 @@ let refresh_token;
 let serverURL;
 let media;
 const publisherID = 470796;
-const redirectURI = 'https://valuemediartb.github.io/auth.html'
+const redirectURI = 'https://valuemediartb.github.io/public/external_apis/daisycon/auth.html'
 
 async function initializeCodes() {
       codeVerifier = generateRandomString(getRandomInt(43,128));
@@ -55,7 +55,7 @@ async function daisyconIndexLoaded() {
         document.getElementById('codeVerifierContainer').innerHTML = "Code verifier: "+codeVerifier;
     }
     else{
-        accessGranted = new URL('https://valuemediartb.github.io/auth.html');
+        accessGranted = new URL(redirectURI);
         location.replace(accessGranted.toString())
     }
     
