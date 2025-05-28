@@ -2,6 +2,10 @@ import {downloadCSV} from '/public/utils.js';
 
 window.authorizeDaisycon = authorizeDaisycon;
 
+function downloadCSV(data, filename) {
+    console.log("Downloading...");
+  }
+
 function generateRandomString(length) {
 	let randomString = '';
 	let allowedChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
