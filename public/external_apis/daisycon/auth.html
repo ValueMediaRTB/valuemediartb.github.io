@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="mainscripts.js" defer></script>
+  <title>ValueMedia - Daisycon</title>
+  
+</head>
+<body>
+    <form id="daisyconAccessForm">
+        <div style="display: grid; grid-template-columns: auto 1fr; align-items: center; margin:8px; gap: 8px">
+            <label style="grid-row: 1;" for="tokenProcessed">Token</label>
+            <input style="width:100%; grid-row: 1;" id="tokenProcessed" type="text" required>
+            <label style="grid-row: 2;" for="codeVerificationInput">Code verification</label>
+            <input style="width:100%;grid-row: 2;" id="codeVerificationInput" type="text" required>
+        </div>
+        <button style="margin:8px" type="button" id="accessDaisyconBtn" onclick="accessDaisycon()">Access Daisycon API</button>
+        <button style="margin:8px" type="button" id="exportOffersBtn" onclick="exportOffers()">Export Offers</button>
+        <button style="margin:8px" type="button" id="getCampaignMaterialBtn" onclick="getPrograms()">Get Programs</button>
+        <button style="margin:8px" type="button" id="getCampaignMaterialBtn" onclick="getCampaignMaterial()">Get Campaign Materials</button>
+        <button style="margin:8px" type="button" id="refreshAccessTokenBtn" onclick="refreshAccessDaisycon()">Refresh Token</button>
+    </form>
+    <div id="configPanel" style="display: grid; grid-template-columns: max-content auto max-content auto; align-items: center; margin:8px; gap: 8px;justify-items:start;">
+        <label style="grid-row: 1;" for="pageInput">Page number</label>
+        <input style="grid-row: 1; width:150px; " id="pageInput" type="text" required>
+        <label style="grid-row: 1;" for="pageSizeInput">Page size</label>
+        <input style="grid-row: 1; width:150px;" id="pageSizeInput" type="text" required>
+        <label style="grid-row: 2;" for="mediaIDInput">Media ID</label>
+        <select style="grid-row: 2; width:150px;" id="mediaIDInput" type="text" required>
+            
+        </select>
+    </div>
+    <div style="margin:8px" id="accessResult"></div>
+    <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="accessToken"></div>
+    <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="refreshToken"></div>
+    <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="resultTitle"></div>
+    <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="resultContainer"></div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+                daisyconAuthLoaded();
+            });
+      </script>
+</body>
+</html>
