@@ -1,5 +1,3 @@
-import {downloadCSV} from '/public/utils.js';
-
 window.authorizeDaisycon = authorizeDaisycon;
 
 function downloadCSV(data, filename) {
