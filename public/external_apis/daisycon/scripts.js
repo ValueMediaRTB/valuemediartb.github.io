@@ -1,5 +1,7 @@
 import {downloadCSV} from '/public/utils.js';
 
+window.authorizeDaisycon = authorizeDaisycon;
+
 function generateRandomString(length) {
 	let randomString = '';
 	let allowedChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
