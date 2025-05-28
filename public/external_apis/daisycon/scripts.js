@@ -1,4 +1,4 @@
-import * as utils from '/public/utils.js';
+import {downloadCSV} from '/public/utils.js';
 
 function generateRandomString(length) {
 	let randomString = '';
@@ -64,7 +64,7 @@ async function daisyconIndexLoaded() {
     console.log("indexLoaded() called")
 }
 function daisyconAuthLoaded(){
-    utils.downloadCSV();
+    downloadCSV();
     codeVerifier = sessionStorage.getItem('codeVerifier');
     clientID = sessionStorage.getItem('clientID');
     serverURL = sessionStorage.getItem('serverURL');
