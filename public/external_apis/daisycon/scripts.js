@@ -149,7 +149,7 @@ async function daisyconAuthLoaded(){
         document.getElementById('accessDaisyconBtn').disabled = false;
         document.getElementById('getCampaignMaterialBtn').disabled = true;
         const urlParams = new URLSearchParams(window.location.search);
-        token = urlParams.get('code'); ///////
+        token = urlParams.get('code'); ///
         if (token) {
             document.getElementById('tokenProcessed').value = token
         }
