@@ -49,9 +49,9 @@ function convertToCSV(data) {
                 // Handle nested objects/arrays by stringifying them
                 const value = obj[header];
                 if (value && typeof value === 'object') {
-                    return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
+                    return `"${JSON.stringify(value).replace(/"/g, '"')}"`;
                 }
-                return `"${String(value ?? '').replace(/"/g, '""')}"`;
+                return `"${String(value ?? '').replace(/"/g, '"')}"`;
             }).join(',');
         });
         
@@ -448,11 +448,10 @@ async function exportOffers(){
             document.getElementById('resultTitle').innerHTML = "Export offers successful!";
             document.getElementById('resultContainer').innerHTML = "Downloading daisyconOffers.csv...";
 
-            downloadCSV(data,'daisyconOffers.csv');
+            downloadCSV(data.result,'daisyconOffers.csv');
             console.log('exportOffers() success:', data);
         }
     } catch (error) {
         console.error('Error:', error);
     }
-    
 }
