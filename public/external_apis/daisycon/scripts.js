@@ -160,19 +160,20 @@ function daisyconAuthLoaded(){
         document.getElementById('accessDaisyconBtn').disabled = true;
         document.getElementById('getCampaignMaterialBtn').disabled = false;
         if(!media || media == "undefined"){
-            getMedias();
-            let mediaIDInput = document.getElementById('mediaIDInput');
-            media.forEach(option => {
-                const optElem = document.createElement('option');
-                optElem.value = option.id;
-                optElem.textContent = `ID: ${option.id}, Name: ${option.name}`;
-                mediaIDInput.appendChild(optElem);
-            });
-            const noneOpt = document.createElement('option');
-            noneOpt.value = '';
-            noneOpt.textContent = 'All';
-            noneOpt.selected = true;
-            mediaIDInput.prepend(noneOpt);
+            if(getMedias()){
+                let mediaIDInput = document.getElementById('mediaIDInput');
+                media.forEach(option => {
+                    const optElem = document.createElement('option');
+                    optElem.value = option.id;
+                    optElem.textContent = `ID: ${option.id}, Name: ${option.name}`;
+                    mediaIDInput.appendChild(optElem);
+                });
+                const noneOpt = document.createElement('option');
+                noneOpt.value = '';
+                noneOpt.textContent = 'All';
+                noneOpt.selected = true;
+                mediaIDInput.prepend(noneOpt);
+            }
         }
     }
     console.log("authLoaded() called")
@@ -374,7 +375,7 @@ async function getPrograms(){
 async function getMedias(){
     if(!access_token || access_token == "undefined"){
         alert('In getMedias(): Access token is missing!');
-        return;
+        return false;
     }
     try {
         pageNr = document.getElementById('pageInput').value || 1;
@@ -390,15 +391,19 @@ async function getMedias(){
             }),
         headers: { 'Content-Type': 'application/json' }
         });
-    
+        if (!response.ok) {
+            console.error("In getMedias(): received error response from server");
+            return false;
+        }
         const data = await response.json();
         media = data;
         // Handle the response (e.g., save access token)
         document.getElementById('resultTitle').innerHTML = "Get medias successful!"
-
-        console.log('Success:', data);
+        console.log('in getMedias() success:', data);
+        return true;
     } catch (error) {
         console.error('Error:', error);
+        return false;
     }
     
 }
@@ -440,7 +445,7 @@ async function exportOffers(){
 
         // First check if the HTTP request itself succeeded
         if (!response.ok) {
-            console.error("In exportOffers(): error sending POST to server");
+            console.error("In exportOffers(): received error response from server");
         }
         else{
             const data = await response.json();
