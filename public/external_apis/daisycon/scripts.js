@@ -159,21 +159,21 @@ function daisyconAuthLoaded(){
         document.getElementById('refreshToken').innerHTML = "Refresh token: "+refresh_token;
         document.getElementById('accessDaisyconBtn').disabled = true;
         document.getElementById('getCampaignMaterialBtn').disabled = false;
-        if(!media){
+        if(!media || media == "undefined"){
             getMedias();
+            let mediaIDInput = document.getElementById('mediaIDInput');
+            media.forEach(option => {
+                const optElem = document.createElement('option');
+                optElem.value = option.id;
+                optElem.textContent = `ID: ${option.id}, Name: ${option.name}`;
+                mediaIDInput.appendChild(optElem);
+            });
+            const noneOpt = document.createElement('option');
+            noneOpt.value = '';
+            noneOpt.textContent = 'All';
+            noneOpt.selected = true;
+            mediaIDInput.prepend(noneOpt);
         }
-        let mediaIDInput = document.getElementById('mediaIDInput');
-        media.forEach(option => {
-            const optElem = document.createElement('option');
-            optElem.value = option.id;
-            optElem.textContent = `ID: ${option.id}, Name: ${option.name}`;
-            mediaIDInput.appendChild(optElem);
-        });
-        const noneOpt = document.createElement('option');
-        noneOpt.value = '';
-        noneOpt.textContent = 'All';
-        noneOpt.selected = true;
-        mediaIDInput.prepend(noneOpt);
     }
     console.log("authLoaded() called")
 }
@@ -391,7 +391,6 @@ async function getMedias(){
         headers: { 'Content-Type': 'application/json' }
         });
     
-
         const data = await response.json();
         media = data;
         // Handle the response (e.g., save access token)
