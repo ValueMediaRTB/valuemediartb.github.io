@@ -138,6 +138,7 @@ async function daisyconIndexLoaded() {
     console.log("indexLoaded() called")
 }
 async function daisyconAuthLoaded(){
+    console.log("authLoaded() called")
     codeVerifier = sessionStorage.getItem('codeVerifier');
     clientID = sessionStorage.getItem('clientID');
     serverURL = sessionStorage.getItem('serverURL');
@@ -177,7 +178,6 @@ async function daisyconAuthLoaded(){
             }
         }
     }
-    console.log("authLoaded() called")
 }
 
 function authorizeDaisycon(){
