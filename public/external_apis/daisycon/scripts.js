@@ -137,7 +137,7 @@ async function daisyconIndexLoaded() {
     
     console.log("indexLoaded() called")
 }
-function daisyconAuthLoaded(){
+async function daisyconAuthLoaded(){
     codeVerifier = sessionStorage.getItem('codeVerifier');
     clientID = sessionStorage.getItem('clientID');
     serverURL = sessionStorage.getItem('serverURL');
@@ -160,7 +160,8 @@ function daisyconAuthLoaded(){
         document.getElementById('accessDaisyconBtn').disabled = true;
         document.getElementById('getCampaignMaterialBtn').disabled = false;
         if(!media || media == "undefined"){
-            if(getMedias()){
+            getMediasResult = await getMedias();
+            if(getMediasResult){
                 let mediaIDInput = document.getElementById('mediaIDInput');
                 media.forEach(option => {
                     const optElem = document.createElement('option');
