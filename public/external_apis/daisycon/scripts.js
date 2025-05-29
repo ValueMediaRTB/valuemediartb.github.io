@@ -150,6 +150,7 @@ async function daisyconAuthLoaded(){
         document.getElementById('getCampaignMaterialBtn').disabled = true;
         const urlParams = new URLSearchParams(window.location.search);
         token = urlParams.get('code'); ///
+        
         if (token) {
             document.getElementById('tokenProcessed').value = token
         }
