@@ -138,7 +138,6 @@ async function daisyconIndexLoaded() {
     console.log("indexLoaded() called")
 }
 function daisyconAuthLoaded(){
-    downloadCSV();
     codeVerifier = sessionStorage.getItem('codeVerifier');
     clientID = sessionStorage.getItem('clientID');
     serverURL = sessionStorage.getItem('serverURL');
