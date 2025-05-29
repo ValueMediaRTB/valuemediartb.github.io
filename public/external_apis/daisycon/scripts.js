@@ -1,8 +1,36 @@
 window.authorizeDaisycon = authorizeDaisycon;
 
 function downloadCSV(data, filename) {
-    console.log("Downloading...");
-  }
+        // Convert data to CSV format
+    const csvContent = convertToCSV(data);
+    
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function convertToCSV(data) {
+    // Handle array of objects
+    if (Array.isArray(data)) {
+        const headers = Object.keys(data[0]).join(',');
+        const rows = data.map(obj => 
+        Object.values(obj).map(value => 
+            `"${String(value).replace(/"/g, '""')}"`
+        ).join(',')
+        );
+        return [headers, ...rows].join('\n');
+    }
+    return data; // If already in CSV string format
+}
 
 function generateRandomString(length) {
 	let randomString = '';
@@ -353,7 +381,6 @@ async function exportOffers(){
                     headers: { 'accept': 'application/json',
                     'Authorization':'Bearer '+access_token },
                     method:"GET"
-                    ////,writeToFile: 1 use this in production mode
                 },
                 {
                     commandName:"getProducts",
@@ -361,7 +388,6 @@ async function exportOffers(){
                     headers: { 'accept': 'application/json',
                     'Authorization':'Bearer '+access_token },
                     method:"GET"
-                    ////,writeToFile: 1 use this in production mode
                 },
                 {
                     commandName:"exportOffers"
@@ -370,14 +396,19 @@ async function exportOffers(){
             }),
         headers: { 'Content-Type': 'application/json' }
         });
-    
 
-        const data = await response.json();
-        // Handle the response (e.g., save access token)
-        document.getElementById('resultTitle').innerHTML = "Export offers successful!"
-        document.getElementById('resultContainer').innerHTML = "Result stored in result.csv in server."
+        // First check if the HTTP request itself succeeded
+        if (!response.ok) {
+            console.error("In exportOffers(): error sending POST to server");
+        }
+        else{
+            const data = await response.json();
+            document.getElementById('resultTitle').innerHTML = "Export offers successful!";
+            document.getElementById('resultContainer').innerHTML = "Downloading daisyconOffers.csv...";
 
-        console.log('Success:', data);
+            downloadCSV(data,'daisyconOffers.csv');
+            console.log('exportOffers() success:', data);
+        }
     } catch (error) {
         console.error('Error:', error);
     }
