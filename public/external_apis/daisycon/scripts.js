@@ -371,6 +371,7 @@ async function exportOffers(){
     try {
         pageNr = document.getElementById('pageInput').value || 1;
         pageSize = document.getElementById('pageSizeInput').value || 1000;
+        document.getElementById('resultTitle').innerHTML = "Sending exportOffers request to server...";
         const response = await fetch(`${serverURL}/export` , {
         method: 'POST',
         body: JSON.stringify({
