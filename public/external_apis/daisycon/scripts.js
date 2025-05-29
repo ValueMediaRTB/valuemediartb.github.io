@@ -408,7 +408,7 @@ async function exportOffers(){
     try {
         pageNr = document.getElementById('pageInput').value || 1;
         pageSize = document.getElementById('pageSizeInput').value || 1000;
-        document.getElementById('resultTitle').innerHTML = "Sending exportOffers request to server...";
+        document.getElementById('resultTitle').innerHTML = "Sent exportOffers request to server, waiting for response...";
         const response = await fetch(`${serverURL}/export` , {
         method: 'POST',
         body: JSON.stringify({
@@ -438,6 +438,7 @@ async function exportOffers(){
         // First check if the HTTP request itself succeeded
         if (!response.ok) {
             console.error("In exportOffers(): received error response from server");
+            document.getElementById('resultTitle').innerHTML = "exportOffers failed! Received response "+response.status;
         }
         else{
             const data = await response.json();
