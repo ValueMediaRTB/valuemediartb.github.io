@@ -35,42 +35,32 @@ function convertToCSV(data) {
             throw new Error('Invalid JSON string provided');
         }
     }
-    
-    // Handle array of objects
-    if (Array.isArray(data)) {
-        if (data.length === 0) return '';
-        
-        // Get headers from first object
-        const headers = Object.keys(data[0]);
-        
-        // Process all rows
-        const rows = data.map(obj => {
-            return headers.map(header => {
-                // Handle nested objects/arrays by stringifying them
-                const value = obj[header];
-                if (value && typeof value === 'object') {
-                    return `"${JSON.stringify(value).replace(/"/g, '"')}"`;
-                }
-                return `"${String(value ?? '').replace(/"/g, '"')}"`;
-            }).join(',');
-        });
-        
-        return [headers.join(','), ...rows].join('\n');
+    // Case 1: Simple string array (one element per line)
+    if (Array.isArray(data) && data.every(item => typeof item === 'string')) {
+        return data.map(str => `"${str.replace(/"/g, '""')}"`).join('\n');
     }
-    
-    // Handle single object
-    if (typeof data === 'object' && data !== null) {
+    // Case 2: Object with array values (matrix format)
+    if (typeof data === 'object' && data !== null && !Array.isArray(data) &&
+        Object.values(data).every(val => Array.isArray(val))) {
+        
         const headers = Object.keys(data);
-        const row = headers.map(header => {
-            const value = data[header];
-            if (value && typeof value === 'object') {
-                return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
-            }
-            return `"${String(value ?? '').replace(/"/g, '""')}"`;
-        }).join(',');
-        return [headers.join(','), row].join('\n');
+        const maxLength = Math.max(...Object.values(data).map(arr => arr.length));
+        
+        const rows = [];
+        // Add header row
+        rows.push(headers.map(h => `"${h.replace(/"/g, '""')}"`).join(','));
+        
+        // Add data rows
+        for (let i = 0; i < maxLength; i++) {
+            const row = headers.map(header => {
+                const value = data[header][i];
+                return `"${String(value ?? '').replace(/"/g, '""')}"`;
+            });
+            rows.push(row.join(','));
+        }
+        
+        return rows.join('\n');
     }
-    
     throw new Error('Unsupported data format. Expected array of objects, single object, or JSON string.');
 }
 
@@ -150,7 +140,7 @@ async function daisyconAuthLoaded(){
         document.getElementById('getCampaignMaterialBtn').disabled = true;
         const urlParams = new URLSearchParams(window.location.search);
         token = urlParams.get('code'); ///
-        
+
         if (token) {
             document.getElementById('tokenProcessed').value = token
         }
