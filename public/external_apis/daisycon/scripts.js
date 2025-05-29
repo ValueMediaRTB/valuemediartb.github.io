@@ -1,35 +1,77 @@
 window.authorizeDaisycon = authorizeDaisycon;
 
-function downloadCSV(data, filename) {
+function downloadCSV(data, filename = 'data.csv') {
+    try {
         // Convert data to CSV format
-    const csvContent = convertToCSV(data);
-    
-    // Create download link
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    link.style.visibility = 'hidden';
-    
-    // Trigger download
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+        const csvContent = convertToCSV(data);
+        
+        // Create download link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+    } catch (error) {
+        console.error('Error generating CSV:', error);
+        alert('Could not generate CSV file. See console for details.');
+    }
 }
 
 function convertToCSV(data) {
+    // If data is a JSON string, parse it first
+    if (typeof data === 'string') {
+        try {
+            data = JSON.parse(data);
+        } catch (e) {
+            throw new Error('Invalid JSON string provided');
+        }
+    }
+    
     // Handle array of objects
     if (Array.isArray(data)) {
-        const headers = Object.keys(data[0]).join(',');
-        const rows = data.map(obj => 
-        Object.values(obj).map(value => 
-            `"${String(value).replace(/"/g, '""')}"`
-        ).join(',')
-        );
-        return [headers, ...rows].join('\n');
+        if (data.length === 0) return '';
+        
+        // Get headers from first object
+        const headers = Object.keys(data[0]);
+        
+        // Process all rows
+        const rows = data.map(obj => {
+            return headers.map(header => {
+                // Handle nested objects/arrays by stringifying them
+                const value = obj[header];
+                if (value && typeof value === 'object') {
+                    return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
+                }
+                return `"${String(value ?? '').replace(/"/g, '""')}"`;
+            }).join(',');
+        });
+        
+        return [headers.join(','), ...rows].join('\n');
     }
-    return data; // If already in CSV string format
+    
+    // Handle single object
+    if (typeof data === 'object' && data !== null) {
+        const headers = Object.keys(data);
+        const row = headers.map(header => {
+            const value = data[header];
+            if (value && typeof value === 'object') {
+                return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
+            }
+            return `"${String(value ?? '').replace(/"/g, '""')}"`;
+        }).join(',');
+        return [headers.join(','), row].join('\n');
+    }
+    
+    throw new Error('Unsupported data format. Expected array of objects, single object, or JSON string.');
 }
 
 function generateRandomString(length) {
