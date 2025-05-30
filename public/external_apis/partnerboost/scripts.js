@@ -1,5 +1,17 @@
-function partnerBoostIndexLoaded(){}
+let serverURL;
+
+function partnerBoostIndexLoaded(){
+    serverURL = sessionStorage.getItem('serverURL',serverURL);
+    if(!serverURL || serverURL == "undefined"){}
+    else{
+        document.getElementById('serverURLInput').value = serverURL;
+    }
+}
 function validateInput(){
+    serverURL = document.getElementById('serverURLInput').value;
+    if(!serverURL || serverURL == "undefined" || serverURL == "")
+        return false;
+    sessionStorage.setItem('serverURL',serverURL);
     return true;
 }
 function downloadCSV(data, filename = 'data.csv') {
