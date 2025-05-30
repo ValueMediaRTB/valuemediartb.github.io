@@ -116,8 +116,8 @@ async function exportOffers(){
                     commandName:"partnerboostOffers"
                 },
                 {
-                    commandName:"getProducts",
-                    targetUrl:`https://app.partnerboost.com/api.php?mod=datafeed&op=list`,
+                    commandName:"getBrands",
+                    targetUrl:`https://app.partnerboost.com/api.php?mod=medium&op=monetization_api`,
                     headers: { 'Content-Type': 'application/json',
                         'accept':'application/json' },
                     method:"POST",
@@ -130,8 +130,8 @@ async function exportOffers(){
 
         // First check if the HTTP request itself succeeded
         if (!response.ok) {
-            console.error("In exportOffers(): received error response from server");
-            document.getElementById('resultTitle').innerHTML = "exportOffers failed! Received response "+response.status;
+            console.error("In PartnerBoost/exportOffers(): received error response from server");
+            document.getElementById('resultTitle').innerHTML = "PartnerBoost/exportOffers failed! Received response "+response.status;
         }
         else{
             const data = await response.json();
@@ -139,7 +139,7 @@ async function exportOffers(){
             document.getElementById('resultContainer').innerHTML = "Downloading partnerboostOffers.csv...";
 
             downloadCSV(data.result,'partnerboostOffers.csv');
-            console.log('exportOffers() success:', data);
+            console.log('PartnerBoost/exportOffers() success:', data);
         }
     } catch (error) {
         console.error('Error:', error);
