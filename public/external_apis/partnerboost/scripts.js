@@ -151,7 +151,6 @@ async function exportOffers(){
                     downloadCSV(data.result,'partnerboostOffers_netcraft.csv');
                     break;
             }
-            downloadCSV(data.result,'partnerboostOffers.csv');
             console.log('PartnerBoost/exportOffers() success:', data);
         }
     } catch (error) {
