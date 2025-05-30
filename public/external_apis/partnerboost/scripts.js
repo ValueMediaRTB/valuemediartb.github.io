@@ -121,7 +121,7 @@ async function exportOffers(){
                     headers: { 'Content-Type': 'application/json',
                         'accept':'application/json' },
                     method:"POST",
-                    body:document.getElementById('accountInput').value
+                    body:{user:document.getElementById('accountInput').value}
                 }
             ]
             }),
