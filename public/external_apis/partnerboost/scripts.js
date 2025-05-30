@@ -1,4 +1,5 @@
 let serverURL;
+let accountID;
 
 function partnerBoostIndexLoaded(){
     serverURL = sessionStorage.getItem('serverURL',serverURL);
@@ -9,6 +10,7 @@ function partnerBoostIndexLoaded(){
 }
 function validateInput(){
     serverURL = document.getElementById('serverURLInput').value;
+    accountID = document.getElementById('accountInput').value;
     if(!serverURL || serverURL == "undefined" || serverURL == "")
         return false;
     sessionStorage.setItem('serverURL',serverURL);
@@ -138,6 +140,17 @@ async function exportOffers(){
             document.getElementById('resultTitle').innerHTML = "Export offers successful!";
             document.getElementById('resultContainer').innerHTML = "Downloading partnerboostOffers.csv...";
 
+            switch(accountID){
+                case "1":
+                    downloadCSV(data.result,'partnerboostOffers_allusers.csv');
+                    break;
+                case "508487":
+                    downloadCSV(data.result,'partnerboostOffers_alphaads.csv');
+                    break;
+                case "508489":
+                    downloadCSV(data.result,'partnerboostOffers_netcraft.csv');
+                    break;
+            }
             downloadCSV(data.result,'partnerboostOffers.csv');
             console.log('PartnerBoost/exportOffers() success:', data);
         }
