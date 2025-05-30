@@ -35,11 +35,32 @@ function convertToCSV(data) {
             throw new Error('Invalid JSON string provided');
         }
     }
-    // Case 1: Simple string array (one element per line)
+
+    // Case 1: Array of objects
+    if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object' && data[0] !== null) {
+        const headers = Object.keys(data[0]);
+        const headerRow = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',');
+        
+        const dataRows = data.map(obj => {
+            return headers.map(header => {
+                const value = obj[header];
+                // Handle nested objects/arrays by stringifying them
+                if (value && typeof value === 'object') {
+                    return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
+                }
+                return `"${String(value ?? '').replace(/"/g, '""')}"`;
+            }).join(',');
+        });
+        
+        return [headerRow, ...dataRows].join('\n');
+    }
+
+    // Case 2: Simple string array (one element per line)
     if (Array.isArray(data) && data.every(item => typeof item === 'string')) {
         return data.map(str => `"${str.replace(/"/g, '""')}"`).join('\n');
     }
-    // Case 2: Object with array values (matrix format)
+
+    // Case 3: Object with array values (matrix format)
     if (typeof data === 'object' && data !== null && !Array.isArray(data) &&
         Object.values(data).every(val => Array.isArray(val))) {
         
@@ -61,7 +82,8 @@ function convertToCSV(data) {
         
         return rows.join('\n');
     }
-    throw new Error('Unsupported data format. Expected array of objects, single object, or JSON string.');
+
+    throw new Error('Unsupported data format. Expected: array of objects, array of strings, object with array values, or JSON string.');
 }
 
 function generateRandomString(length) {
