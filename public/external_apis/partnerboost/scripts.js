@@ -138,16 +138,18 @@ async function exportOffers(){
         else{
             const data = await response.json();
             document.getElementById('resultTitle').innerHTML = "Export offers successful!";
-            document.getElementById('resultContainer').innerHTML = "Downloading partnerboostOffers.csv...";
 
             switch(accountID){
                 case "1":
+                    document.getElementById('resultContainer').innerHTML = "Downloading partnerboostOffers_allusers.csv...";
                     downloadCSV(data.result,'partnerboostOffers_allusers.csv');
                     break;
                 case "508487":
+                    document.getElementById('resultContainer').innerHTML = "Downloading partnerboostOffers_alphaads.csv...";
                     downloadCSV(data.result,'partnerboostOffers_alphaads.csv');
                     break;
                 case "508489":
+                    document.getElementById('resultContainer').innerHTML = "Downloading partnerboostOffers_netcraft.csv...";
                     downloadCSV(data.result,'partnerboostOffers_netcraft.csv');
                     break;
             }

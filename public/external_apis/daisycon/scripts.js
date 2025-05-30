@@ -433,6 +433,7 @@ async function exportOffers(){
         pageNr = document.getElementById('pageInput').value || 1;
         pageSize = document.getElementById('pageSizeInput').value || 1000;
         document.getElementById('resultTitle').innerHTML = "Sent exportOffers request to server, waiting for response...";
+        document.getElementById('resultContainer').innerHTML = "";
         const response = await fetch(`${serverURL}/export` , {
         method: 'POST',
         body: JSON.stringify({
