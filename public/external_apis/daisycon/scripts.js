@@ -138,6 +138,7 @@ async function daisyconAuthLoaded(){
         document.getElementById('codeVerificationInput').value = codeVerifier;
         document.getElementById('accessDaisyconBtn').disabled = false;
         document.getElementById('getCampaignMaterialBtn').disabled = true;
+        document.getElementById('apiButtonsContainer').style.display = "none";
         const urlParams = new URLSearchParams(window.location.search);
         token = urlParams.get('code'); ///
 
@@ -150,6 +151,7 @@ async function daisyconAuthLoaded(){
         document.getElementById('accessToken').innerHTML = "Access token: "+access_token;
         document.getElementById('refreshToken').innerHTML = "Refresh token: "+refresh_token;
         document.getElementById('accessDaisyconBtn').disabled = true;
+        document.getElementById('apiButtonsContainer').style.display = "block";
         document.getElementById('getCampaignMaterialBtn').disabled = false;
         if(!media || media == "undefined"){
             getMediasResult = await getMedias();

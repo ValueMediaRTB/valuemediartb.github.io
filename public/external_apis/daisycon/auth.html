@@ -13,10 +13,12 @@
             <input style="width:100%;grid-row: 2;" id="codeVerificationInput" type="text" required>
         </div>
         <button style="margin:8px" type="button" id="accessDaisyconBtn" onclick="accessDaisycon()">Access Daisycon API</button>
-        <button style="margin:8px" type="button" id="exportOffersBtn" onclick="exportOffers()">Export Offers</button>
-        <button style="margin:8px" type="button" id="getCampaignMaterialBtn" onclick="getPrograms()">Get Programs</button>
-        <button style="margin:8px" type="button" id="getCampaignMaterialBtn" onclick="getCampaignMaterial()">Get Campaign Materials</button>
-        <button style="margin:8px" type="button" id="refreshAccessTokenBtn" onclick="refreshAccessDaisycon()">Refresh Token</button>
+        <div id="apiButtonsContainer" style="display:none;">
+            <button style="margin:8px" type="button" id="exportOffersBtn" onclick="exportOffers()">Export Offers</button>
+            <button style="margin:8px" type="button" id="getCampaignMaterialBtn" onclick="getPrograms()">Get Programs</button>
+            <button style="margin:8px" type="button" id="getCampaignMaterialBtn" onclick="getCampaignMaterial()">Get Campaign Materials</button>
+            <button style="margin:8px" type="button" id="refreshAccessTokenBtn" onclick="refreshAccessDaisycon()">Refresh Token</button>
+        </div>
     </form>
     <div id="configPanel" style="display: grid; grid-template-columns: max-content auto max-content auto; align-items: center; margin:8px; gap: 8px;justify-items:start;">
         <label style="grid-row: 1;" for="pageInput">Page number</label>

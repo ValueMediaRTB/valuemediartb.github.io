@@ -5,3 +5,10 @@
 /daisyconOffers.csv
 /TODO.txt
 /.env
+/config/
+/controllers/
+/jobs/
+/models/
+/routes/
+/services/
+/DatabaseDesign.txt
