@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Value Media - PartnerBoost</title>
+    <h3 style="margin:8px;">PartnerBoost API</h3>
+    <button style="margin:8px"  onclick="window.location.href='/public/index.html'"> Home </button>
+    <form id="partnerBoostForm">
+        <div style="display: grid; grid-template-columns: auto 1fr; align-items: center; margin:8px; gap: 8px">
+            <label for="accountLabel" style="grid-row: 1;">Choose account</label>
+            <select style="grid-row: 1; width:250px;" id="accountInput" required>
+                <option value="1" selected>All</option>
+                <option value="508487">AlphaAds</option>
+                <option value="508489">Netcraft</option>
+            </select>
+        </div>
+        <button id="partnerBoostExportOffersBtn" style="margin:8px" type="button" onclick="exportOffers()">Export Offers</button>
+    </form>
+    <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="resultTitle"></div>
+    <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="resultContainer"></div>
+    <script src="scripts.js" defer></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            partnerBoostIndexLoaded();
+        });
+    </script>
+</body>
+
+</html>

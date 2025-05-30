@@ -436,7 +436,10 @@ async function exportOffers(){
         const response = await fetch(`${serverURL}/export` , {
         method: 'POST',
         body: JSON.stringify({
-            commands : [
+            commands : [  
+                {
+                    commandName:"daisyconOffers"
+                },
                 {
                     commandName:"getMedia",
                     targetUrl:`https://services.daisycon.com/publishers/${publisherID}/media`,
@@ -450,9 +453,6 @@ async function exportOffers(){
                     headers: { 'accept': 'application/json',
                     'Authorization':'Bearer '+access_token },
                     method:"GET"
-                },
-                {
-                    commandName:"exportOffers"
                 }
             ]
             }),
