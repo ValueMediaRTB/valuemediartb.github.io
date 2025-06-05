@@ -118,7 +118,7 @@ let refresh_token;
 let serverURL;
 let media;
 const publisherID = 470796;
-const redirectURI = 'https://valuemediartb.github.io/public/external_apis/daisycon/auth.html'
+const redirectURI = 'https://valuemediartb.github.io/external_apis/daisycon/auth.html'
 
 async function initializeCodes() {
       codeVerifier = generateRandomString(getRandomInt(43,128));
@@ -265,6 +265,7 @@ async function accessDaisycon(){
         document.getElementById('accessToken').innerHTML = "Access token: "+data.access_token;
         document.getElementById('refreshToken').innerHTML = "Refresh token: "+data.refresh_token;
         document.getElementById('accessDaisyconBtn').disabled = true;
+        document.getElementById('apiButtonsContainer').style.display = "block";
         document.getElementById('getCampaignMaterialBtn').disabled = false;
 
         access_token = data.access_token;

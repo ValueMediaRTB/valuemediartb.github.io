@@ -1,0 +1,34 @@
+.app-container {
+    padding: 0;
+    height: calc(100vh - 32px);
+    display: flex;
+    flex-direction: column;
+  }
+.table-container {
+  height: calc(100vh - 250px);
+  overflow-y: auto;
+}
+.nav-tabs {
+  border-bottom: 2px solid #dee2e6;
+}
+.tab-content {
+  padding: 20px 0;
+}
+.content-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+  /* Custom scrollbar for filter row */
+.filter-scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: #ddd #f8f9fa;
+}
+.react-datepicker__input-container{
+  min-width:240px;
+}
+.form-control:focus, .dropdown-toggle:focus, select:focus, .form-select:focus{
+  box-shadow: none !important;
+  outline: none !important; 
+}
