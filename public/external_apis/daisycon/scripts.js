@@ -117,6 +117,7 @@ let access_token;
 let refresh_token;
 let serverURL;
 let media;
+let pageNr,pageSize,mediaID,mediaIDParam;
 const publisherID = 470796;
 const redirectURI = 'https://valuemediartb.github.io/external_apis/daisycon/auth.html'
 
@@ -324,14 +325,20 @@ async function refreshAccessDaisycon(){
       }
 }
 
+function validateAPIInput(){
+    pageNr = document.getElementById('pageInput').value || 1;
+    pageSize = document.getElementById('pageSizeInput').value || 1000;
+    mediaID = document.getElementById('mediaIDInput').value || 0;
+    mediaIDParam = ( mediaID != 0 ? "media_id=${mediaID}&" : "")
+}
+
 async function getCampaignMaterial(){
     if(!access_token || access_token == "undefined"){
         alert('In getCampaignMaterial(): Access token is missing!');
         return;
     }
     try {
-        pageNr = document.getElementById('pageInput').value || 1;
-        pageSize = document.getElementById('pageSizeInput').value || 1000;
+        validateAPIInput();
         const response = await fetch(`${serverURL}/proxy` , {
         method: 'POST',
         body: JSON.stringify({
@@ -361,10 +368,7 @@ async function getPrograms(){
         return;
     }
     try {
-        pageNr = document.getElementById('pageInput').value || 1;
-        pageSize = document.getElementById('pageSizeInput').value || 1000;
-        mediaID = document.getElementById('mediaIDInput').value || 0;
-        mediaIDParam = ( mediaID != 0 ? "media_id=${mediaID}&" : "")
+        validateAPIInput();
         const response = await fetch(`${serverURL}/proxy` , {
         method: 'POST',
         body: JSON.stringify({
@@ -385,6 +389,39 @@ async function getPrograms(){
 
         console.log('Success:', data);
     } catch (error) {
+        console.error('Error:', error);
+    }
+    
+}
+async function getMaterialDeeplinks(){
+    if(!access_token || access_token == "undefined"){
+        alert('In getPrograms(): Access token is missing!');
+        return;
+    }
+    try {
+        validateAPIInput();
+        document.getElementById('resultTitle').innerHTML = "Sent getMaterialDeeplinks request to server, waiting for response...";
+        document.getElementById('resultContainer').innerHTML = "";
+        const response = await fetch(`${serverURL}/proxy` , {
+        method: 'POST',
+        body: JSON.stringify({
+            targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/deeplinks?${mediaIDParam}order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
+            headers: { 'accept': 'application/json',
+            'Authorization':'Bearer '+access_token },
+            method:"GET"
+            }),
+        headers: { 'Content-Type': 'application/json' }
+        });
+    
+        const data = await response.json();
+        // Handle the response (e.g., save access token)
+        document.getElementById('resultTitle').innerHTML = "Get all ads with deeplinks successful!"
+        document.getElementById('resultContainer').innerHTML = "Result in console"
+
+        console.log('Success:', data);
+    } catch (error) {
+        document.getElementById('resultTitle').innerHTML = "Received error response for getMaterialDeeplinks";
+        document.getElementById('resultContainer').innerHTML = "";
         console.error('Error:', error);
     }
     
