@@ -24,7 +24,7 @@ function App() {
   return (
     <div className="app-container d-flex flex-column vh-100">
       <NavigationBar />
-      <div className="flex-grow-1 overflow-auto">
+      <div className="flex-grow-1">
         <DateRangeSelector 
           onDateChange={handleDateChange} 
           onFilterApply={handleFilterApply}

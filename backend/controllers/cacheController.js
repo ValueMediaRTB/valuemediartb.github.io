@@ -1,4 +1,4 @@
-const { client: redisClient } = require('../config/redis');
+const redisClient = require('../config/redis.js');
 
 const getCachedData = async (key, fetchFromDB, ttl = 3600) => {
   try {
@@ -23,8 +23,13 @@ const bustCache = async (keyPattern) => {
   if (keys.length) await redisClient.del(keys);
 };
 
+const clearCache = async() => {
+  await redisClient.flush();
+} 
+
 module.exports = { 
   getCountries,
   getCachedData,
-  bustCache
+  bustCache,
+  clearCache
 };

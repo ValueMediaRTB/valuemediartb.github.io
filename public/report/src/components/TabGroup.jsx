@@ -3,30 +3,80 @@ import { Tab, Nav, Button, Modal, Form } from 'react-bootstrap';
 import MainTable from './MainTable';
 import { fetchTableData } from '../api';
 
-const DEFAULT_TAB_OPTIONS = ['Campaigns', 'Zones', 'Sub IDs', 'Countries', 'ISPs'];
+const DEFAULT_TAB_OPTIONS = ['Campaigns', 'Zones', 'SubIDs', 'Countries', 'ISPs'];
 
 const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
   const [pageSize, setPageSize] = useState(50);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-  const [customGroups, setCustomGroups] = useState([]);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc'});
+  const [customGroups, setCustomGroups] = useState(() => {
+    const savedGroups = sessionStorage.getItem('customGroups');
+    return savedGroups ? JSON.parse(savedGroups) : [];
+  });
   const [showGroupModal, setShowGroupModal] = useState(false);
-  const [tableData, setTableData] = useState([]); // replace with real data
+  const [tableData, setTableData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [newGroup, setNewGroup] = useState({
-    name: '',
     option1: 'None',
-    option2: 'None',
-    option3: 'None'
+    option2: 'None'
   });
+
+  // Calculate totals and averages
+  const totals = useMemo(() => {
+    if (!tableData.length) return null;
+    
+    const numericColumns = ['clicks', 'conversions', 'cost', 'profit', 'revenue'];
+    const avgColumns = ['cpc', 'epc', 'cr'];
+    
+    const result = { id: 'Totals', name: 'Totals' };
+    
+    // Sum numeric columns
+    numericColumns.forEach(col => {
+      result[col] = tableData.reduce((sum, row) => sum + (row[col] || 0), 0);
+    });
+    
+    // Calculate averages
+    avgColumns.forEach(col => {
+      const sum = tableData.reduce((sum, row) => sum + (row[col] || 0), 0);
+      result[col] = tableData.length ? (sum / tableData.length).toFixed(2) : 0;
+    });
+    
+    return result;
+  }, [tableData]);
+
+  // Save custom groups to sessionStorage whenever they change
+  useEffect(() => {
+    sessionStorage.setItem('customGroups', JSON.stringify(customGroups));
+  }, [customGroups]);
+
+  const handleDeleteGroup = (groupName, e) => {
+    e.stopPropagation();
+    const updatedGroups = customGroups.filter(g => g.name !== groupName);
+    setCustomGroups(updatedGroups);
+    
+    if (activeTab === groupName) {
+      setActiveTab(DEFAULT_TAB_OPTIONS[0]);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!activeTab || !dateRange.start || !dateRange.end) return;
+      if (!activeTab || !dateRange.start || !dateRange.end || isLoading) return;
       
       setIsLoading(true);
       try {
-        const data = await fetchTableData(activeTab, dateRange, filters);
+        let data = await fetchTableData(activeTab, dateRange, filters);
+        //if a group is selected, display 'primary_value' and 'secondary_value' values in key columns
+        if (customGroups.some(group => group.name === activeTab)) {
+          const group = customGroups.find(g => g.name === activeTab);
+          data = data.map(item => ({
+            ...item,
+            [group.options[0].toLowerCase()]: item.primary_value || "",
+            [group.options[1].toLowerCase()]: item.secondary_value || ""
+          }));
+          console.log(data)
+        }
+
         setTableData(data);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -42,10 +92,10 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
   const allTabs = [...DEFAULT_TAB_OPTIONS, ...customGroups.map(g => g.name)];
 
   const handleTabSelect = (tab) => {
-    if (dateRange.start && dateRange.end) {
+    if (dateRange.start && dateRange.end && !isLoading) {
       setActiveTab(tab);
       setCurrentPage(1);
-      setSortConfig({ key: null, direction: 'asc' });
+      setSortConfig({ key: null, direction: 'asc'});
     }
   };
 
@@ -59,33 +109,30 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
   };
 
   const handleCreateNewGroup = () => {
-    if (!newGroup.name.trim()) return;
-    
-    const groupOptions = [
-      newGroup.option1,
-      newGroup.option2,
-      newGroup.option3
-    ].filter(opt => opt !== 'None');
+    if (newGroup.option1 === 'None' || newGroup.option2 === 'None') {
+      alert('Please select both options');
+      return;
+    }
 
-    if (groupOptions.length === 0) return;
+    const groupName = `${newGroup.option1}_${newGroup.option2}`;
+    const groupOptions = [newGroup.option1, newGroup.option2];
 
     setCustomGroups([...customGroups, {
-      name: newGroup.name,
+      name: groupName,
       options: groupOptions
     }]);
-    setActiveTab(newGroup.name);
+    
+    setActiveTab(groupName);
     setShowGroupModal(false);
     setNewGroup({
-      name: '',
       option1: 'None',
-      option2: 'None',
-      option3: 'None'
+      option2: 'None'
     });
   };
 
-  const getAvailableOptions = (currentSelection, excludeSelections) => {
-    const usedOptions = excludeSelections.filter(opt => opt !== 'None' && opt !== currentSelection);
-    return ['None', ...DEFAULT_TAB_OPTIONS.filter(opt => !usedOptions.includes(opt))];
+  const getAvailableOptions = (currentSelection, excludeSelection) => {
+    const exclude = excludeSelection === 'None' ? [] : [excludeSelection];
+    return ['None', ...DEFAULT_TAB_OPTIONS.filter(opt => !exclude.includes(opt))];
   };
 
   const handleSort = (key) => {
@@ -96,21 +143,46 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
     setCurrentPage(1);
   };
 
-  const columns = [
+  // Dynamic columns based on active tab
+const columns = useMemo(() => {
+  // Handle custom groups as before
+  const customGroup = customGroups.find(group => group.name === activeTab);
+  if (customGroup) {
+    return [
+      { key: customGroup.options[0].toLowerCase(), label: customGroup.options[0], sortable: true },
+      { key: customGroup.options[1].toLowerCase(), label: customGroup.options[1], sortable: true },
+      { key: 'clicks', label: 'Clicks', sortable: true, numeric: true },
+      { key: 'conversions', label: 'Conversions', sortable: true, numeric: true },
+      { key: 'cost', label: 'Cost', sortable: true, numeric: true },
+      { key: 'profit', label: 'Profit', sortable: true, numeric: true },
+      { key: 'revenue', label: 'Revenue', sortable: true, numeric: true },
+      { key: 'cpc', label: 'CPC', sortable: true, numeric: true },
+      { key: 'epc', label: 'EPC', sortable: true, numeric: true },
+      { key: 'cr', label: 'CR', sortable: true, numeric: true }
+    ];
+  }
+
+  // Dynamic columns based on first row of data
+  if (tableData.length > 0) {
+    const firstRow = tableData[0];
+
+    return Object.keys(firstRow).map(key => ({
+      key,
+      label: key.charAt(0).toUpperCase() + key.slice(1), // basic label formatting
+      sortable: true,
+      numeric: typeof firstRow[key] === 'number'
+    }));
+  }
+
+  // Fallback: show minimal if no data yet
+  return [
     { key: 'id', label: 'ID', sortable: true },
-    { key: 'name', label: 'Name', sortable: true },
-    { key: 'clicks', label: 'Clicks', sortable: true, numeric: true },
-    { key: 'conversions', label: 'Conversions', sortable: true, numeric: true },
-    { key: 'cost', label: 'Cost', sortable: true, numeric: true },
-    { key: 'profit', label: 'Profit', sortable: true, numeric: true },
-    { key: 'revenue', label: 'Revenue', sortable: true, numeric: true },
-    { key: 'cpc', label: 'CPC', sortable: true, numeric: true },
-    { key: 'epc', label: 'EPC', sortable: true, numeric: true },
-    { key: 'cr', label: 'CR', sortable: true, numeric: true }
+    { key: 'name', label: 'Name', sortable: true }
   ];
+}, [activeTab, customGroups, tableData]);
 
   return (
-    <div className="px-3">
+    <div className="px-3" style={{ position: 'relative' }}>
       <div className="d-flex align-items-center">
         <Nav variant="tabs" activeKey={activeTab || DEFAULT_TAB_OPTIONS[0]}>
           {DEFAULT_TAB_OPTIONS.map(tab => (
@@ -118,7 +190,7 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
               <Nav.Link 
                 eventKey={tab}
                 onClick={() => handleTabSelect(tab)}
-                disabled={!dateRange.start || !dateRange.end}
+                disabled={!dateRange.start || !dateRange.end  || isLoading}
               >
                 {tab}
               </Nav.Link>
@@ -129,8 +201,19 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
               <Nav.Link 
                 eventKey={group.name}
                 onClick={() => handleTabSelect(group.name)}
+                className="d-flex align-items-center"
+                disabled={!dateRange.start || !dateRange.end  || isLoading}
               >
                 {group.name}
+                <Button 
+                  variant="link" 
+                  className="text-danger p-0 ms-2"
+                  onClick={(e) => handleDeleteGroup(group.name, e)}
+                  style={{ fontSize: '0.75rem' }}
+                  disabled={!dateRange.start || !dateRange.end  || isLoading}
+                >
+                  ×
+                </Button>
               </Nav.Link>
             </Nav.Item>
           ))}
@@ -139,7 +222,7 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
         <Button 
           variant="outline-primary" 
           onClick={handleCreateGroup}
-          disabled={!dateRange.start || !dateRange.end}
+          disabled={!dateRange.start || !dateRange.end ||isLoading}
           className="ms-2"
           style={{ whiteSpace: 'nowrap' }}
         >
@@ -148,7 +231,7 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
       </div>
 
       {activeTab && (
-        <div className="mt-1">
+        <div className="mt-1" style={{ position: 'relative' }}>
           <MainTable
             data={tableData}
             columns={columns}
@@ -156,11 +239,13 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
             onSort={handleSort}
             initialPageSize={pageSize}
             isLoading={isLoading}
+            totals={totals}
+            stickyHeader
+            stickyPagination
           />
         </div>
       )}
 
-      {/* Create Group Modal */}
       <Modal show={showGroupModal} onHide={() => setShowGroupModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Create New Group</Modal.Title>
@@ -168,28 +253,13 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Group Name</Form.Label>
-              <Form.Control
-                type="text"
-                name="name"
-                value={newGroup.name}
-                onChange={handleGroupInputChange}
-                placeholder="Enter group name"
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
               <Form.Label>First Option</Form.Label>
               <Form.Select
                 name="option1"
                 value={newGroup.option1}
                 onChange={handleGroupInputChange}
               >
-                {getAvailableOptions(
-                  newGroup.option1,
-                  [newGroup.option2, newGroup.option3]
-                ).map(option => (
+                {getAvailableOptions(newGroup.option1, newGroup.option2).map(option => (
                   <option key={`option1-${option}`} value={option}>
                     {option}
                   </option>
@@ -203,32 +273,9 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
                 name="option2"
                 value={newGroup.option2}
                 onChange={handleGroupInputChange}
-                disabled={newGroup.option1 === 'None'}
               >
-                {getAvailableOptions(
-                  newGroup.option2,
-                  [newGroup.option1, newGroup.option3]
-                ).map(option => (
+                {getAvailableOptions(newGroup.option2, newGroup.option1).map(option => (
                   <option key={`option2-${option}`} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Third Option</Form.Label>
-              <Form.Select
-                name="option3"
-                value={newGroup.option3}
-                onChange={handleGroupInputChange}
-                disabled={newGroup.option2 === 'None'}
-              >
-                {getAvailableOptions(
-                  newGroup.option3,
-                  [newGroup.option1, newGroup.option2]
-                ).map(option => (
-                  <option key={`option3-${option}`} value={option}>
                     {option}
                   </option>
                 ))}
@@ -243,7 +290,7 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
           <Button 
             variant="primary" 
             onClick={handleCreateNewGroup}
-            disabled={!newGroup.name.trim()}
+            disabled={newGroup.option1 === 'None' || newGroup.option2 === 'None'}
           >
             Create
           </Button>

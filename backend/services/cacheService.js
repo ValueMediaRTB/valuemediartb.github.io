@@ -6,13 +6,13 @@ class CacheService {
   }
 
   async getDailyData(reportType, date) {
-    const key = `report:${reportType}:${date.toISOString().split('T')[0]}`;
+    const key = `report:${reportType}:${date}`;
     const data = await redis.get(key);
     return data ? JSON.parse(data) : null;
   }
 
   async setDailyData(reportType, date, data, ttl = this.defaultTTL) {
-    const key = `report:${reportType}:${date.toISOString().split('T')[0]}`;
+    const key = `report:${reportType}:${date}`;
     await redis.set(key, JSON.stringify(data), ttl);
   }
 
@@ -29,7 +29,7 @@ class CacheService {
 
   _generateCompositeKey(types, date, filters = {}) {
     const filterHash = this._hashFilters(filters);
-    return `composite:${types.sort().join('_')}:${date.toISOString().split('T')[0]}:${filterHash}`;
+    return `composite:${types.sort().join('_')}:${date}:${filterHash}`;
   }
 
   _hashFilters(filters) {

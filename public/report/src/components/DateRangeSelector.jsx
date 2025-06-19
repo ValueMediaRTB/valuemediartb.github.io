@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
-import { Button, Form, Dropdown, InputGroup } from 'react-bootstrap';
+import { Button, Form, Dropdown } from 'react-bootstrap';
 import 'react-datepicker/dist/react-datepicker.css';
 
 const filterOptions = [
@@ -27,17 +27,25 @@ const numericFilters = [
 ];
 
 const DateRangeSelector = ({ onDateChange, onFilterApply }) => {
-  const [dateRange, setDateRange] = useState([null, null]);
+  // Calculate default last 7 days interval here:
+  const getDefaultLast7Days = () => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - 6); // last 7 days includes today + 6 previous days
+    return [start, end];
+  };
+
+  // Set default state to last 7 days
+  const [dateRange, setDateRange] = useState(getDefaultLast7Days());
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [filterValues, setFilterValues] = useState({});
   const [startDate, endDate] = dateRange;
 
- const [filterOperators, setFilterOperators] = useState({});
- 
- const handleOperatorChange = (filter, operator) => {
-  setFilterOperators({ ...filterOperators, [filter]: operator });
-};
+  const [filterOperators, setFilterOperators] = useState({});
 
+  const handleOperatorChange = (filter, operator) => {
+    setFilterOperators({ ...filterOperators, [filter]: operator });
+  };
 
   const handleAddFilter = (filter) => {
     if (!selectedFilters.includes(filter)) {
@@ -62,10 +70,12 @@ const DateRangeSelector = ({ onDateChange, onFilterApply }) => {
       onDateChange({ start: startDate, end: endDate });
     }
 
-    const activeFilters = selectedFilters.map(filter => ({
-      type: filter,
-      value: filterValues[filter]
-    })).filter(f => f.value.trim() !== '');
+    const activeFilters = selectedFilters
+      .map(filter => ({
+        type: filter,
+        value: filterValues[filter]
+      }))
+      .filter(f => f.value.trim() !== '');
 
     onFilterApply(activeFilters);
   };
@@ -74,14 +84,25 @@ const DateRangeSelector = ({ onDateChange, onFilterApply }) => {
     <div className="bg-light px-3 pb-2 mb-2">
       <div className="d-flex align-items-end gap-2 flex-wrap">
         {/* Date Picker with slightly increased width */}
-        <div style={{ minWidth: '250px',display:'grid'}}>
-          <div style={{fontSize: '0.75rem', marginBottom: '2px',marginTop: '4px' }}>{"Date"}</div>
+        <div style={{ minWidth: '250px', display: 'grid' }}>
+          <div style={{ fontSize: '0.75rem', marginBottom: '2px', marginTop: '4px' }}>
+            {"Date"}
+          </div>
           <DatePicker
             selectsRange
             startDate={startDate}
             endDate={endDate}
-            onChange={(update) => setDateRange(update)}
-            isClearable
+            onChange={(update) => {
+              // If cleared (update is null or [null, null]), reset to default last 7 days
+              if (
+                !update || 
+                (Array.isArray(update) && update.every(date => date === null))
+              ) {
+                setDateRange(getDefaultLast7Days());
+              } else {
+                setDateRange(update);
+              }
+            }}
             className="form-control"
             placeholderText="Select date range"
           />
@@ -111,15 +132,15 @@ const DateRangeSelector = ({ onDateChange, onFilterApply }) => {
         </Dropdown>
 
         {/* Scrollable Filter Inputs */}
-          <div
-            style={{
-              overflowX: 'auto',
-              whiteSpace: 'nowrap',
-              display: 'flex',
-              transform: 'rotateX(180deg)',
-              flex: 1
-            }}
-          >
+        <div
+          style={{
+            overflowX: 'auto',
+            whiteSpace: 'nowrap',
+            display: 'flex',
+            transform: 'rotateX(180deg)',
+            flex: 1
+          }}
+        >
           {selectedFilters.map(filter => (
             <div
               key={filter}
@@ -132,22 +153,15 @@ const DateRangeSelector = ({ onDateChange, onFilterApply }) => {
               }}
             >
               <Form.Group className="mb-0">
-                <Form.Label
-                  style={{ fontSize: '0.75rem', marginBottom: '2px' }}
-                >
+                <Form.Label style={{ fontSize: '0.75rem', marginBottom: '2px' }}>
                   {filter}
                 </Form.Label>
                 <div className="d-flex align-items-center">
                   {numericFilters.includes(filter) && (
                     <Form.Select
                       value={filterOperators[filter] || '='}
-                      onChange={(e) =>
-                        handleOperatorChange(filter, e.target.value)
-                      }
-                      style={{
-                        maxWidth: '60px',
-                        marginRight: '4px'
-                      }}
+                      onChange={(e) => handleOperatorChange(filter, e.target.value)}
+                      style={{ maxWidth: '60px', marginRight: '4px' }}
                     >
                       <option value="<">&lt;</option>
                       <option value="=">=</option>
@@ -158,9 +172,7 @@ const DateRangeSelector = ({ onDateChange, onFilterApply }) => {
                   <Form.Control
                     type="text"
                     value={filterValues[filter] || ''}
-                    onChange={(e) =>
-                      handleFilterValueChange(filter, e.target.value)
-                    }
+                    onChange={(e) => handleFilterValueChange(filter, e.target.value)}
                     placeholder={
                       filter === 'Traffic Source'
                         ? 'Enter values separated by ,'
@@ -172,12 +184,7 @@ const DateRangeSelector = ({ onDateChange, onFilterApply }) => {
                     variant="outline-danger"
                     size="sm"
                     onClick={() => handleRemoveFilter(filter)}
-                    style={{
-                      marginLeft: '4px',
-                      padding: '0px 6px',
-                      fontSize: '1.3rem',
-                      lineHeight: '1.3'
-                    }}
+                    style={{ marginLeft: '4px', padding: '0px 6px', fontSize: '1.3rem', lineHeight: '1.3' }}
                   >
                     ×
                   </Button>

@@ -6,7 +6,9 @@ const rateLimit = require('express-rate-limit');
 const app = express();
 const PORT = 3000;
 const cors = require('cors');
-//const dataController = require('./controllers/dataController');
+const mongoose = require('mongoose');
+const dataController = require('./controllers/dataController');
+const cacheController = require('./controllers/cacheController');
 
 const allowedOrigins = ['http://localhost:3001', 'https://valuemediartb.github.io'];
 // Rate limit: max 1 request per second per IP
@@ -130,6 +132,7 @@ async function exportDaisyconOffers(commands,res){
   tempMedia = await sendRequestDaisycon(commands[1].targetUrl + '?',commands[1].headers,commands[1].method,"");
   tempMedia.forEach(med => media.push(med.id));
 
+  mediasOfProgram = {}
   for(const med of media){
     tempProgram = await sendRequestDaisycon(commands[2].targetUrl + `?media_id=${med}&order_direction=asc&`,commands[2].headers,commands[2].method,"");
     programs = programs.concat(tempProgram);
@@ -155,7 +158,7 @@ async function exportDaisyconOffers(commands,res){
   const jsonRows = uniquePrograms.map(prg => ({
     "Program ID":prg.id,
     "Affiliate program name": prg.name,
-    "Affiliate Link": prg.url,
+    "Affiliate Link": "https:"+prg.url.split("&wi")[0],
     "GEO":getProgramCountryCode(prg.name),
     "Currency": prg.currency_code
   }));
@@ -223,37 +226,41 @@ app.use(cors({
 // Serve static files (like your GitHub Pages HTML)
 app.use(express.static(path.join(__dirname, '../public')));
 
-/*
-app.post('/reportAPI/:reportType', cacheMiddleware(48200), async (req, res) => {
+
+app.post('/reportAPI/:reportType', /*cacheMiddleware(48200),*/express.json(), async (req, res) => {
   try {
     const { reportType } = req.params;
     const { start_date, end_date, filters = [] } = req.body;
-
-    if (!start_date || !end_date) {
-      return res.status(400).json({ error: 'start_date and end_date are required' });
+  
+    if(reportType == 'reset_cache'){
+      await cacheController.clearCache();
+      res.status(200);
     }
-
-    // Convert filters array to object format expected by compositeService
-    const filterObj = {};
-    filters.forEach(filter => {
-      if (filter.type === 'primary') filterObj.primary = filter.value;
-      if (filter.type === 'secondary') filterObj.secondary = filter.value;
-    });
-
-    const reportData = await dataController.getReport(
-      reportType,
-      start_date,
-      end_date,
-      filterObj
-    );
-
-    res.json(reportData);
+    else{
+      if (!start_date || !end_date) {
+        return res.status(400).json({ error: 'start_date and end_date are required' });
+      }
+      // Convert filters array to object format expected by compositeService
+      const filterObj = {};
+      filters.forEach(filter => {
+        if (filter.type === 'primary') filterObj.primary = filter.value;
+        if (filter.type === 'secondary') filterObj.secondary = filter.value;
+      });
+      
+      const reportData = await dataController.getReport(
+        reportType,
+        start_date,
+        end_date,
+        filterObj
+      );
+      res.json(reportData);
+      console.log(`Finished /reportAPI POST request. reportType:${reportType}`);
+    }
   } catch (error) {
     console.error('Report API error:', error);
     res.status(500).json({ error: 'Failed to generate report' });
   }
 });
-});*/
 
 app.post('/export',express.json(),async (req,res) => {
   try {
@@ -313,6 +320,12 @@ app.get('/save-token',limiter, (req, res) => {
   } else {
     res.status(400).send('No token provided');
   }
+});
+
+process.on('SIGINT', async () => {
+  await mongoose.disconnect();
+  console.log('MongoDB disconnected (app termination)');
+  process.exit(0);
 });
 
 app.listen(PORT, () => {

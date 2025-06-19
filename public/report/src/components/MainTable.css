@@ -1,0 +1,52 @@
+
+
+.table-responsive-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 82vh;
+}
+
+.sticky-table-header {
+  position: sticky;
+  top: 0;
+  z-index: -99999;
+  background: white;
+}
+
+.scrollable-table-body {
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.sticky-pagination-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
+  background: white;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+}
+
+/* Fix for table borders */
+.sticky-table-header table {
+  margin-bottom: 0;
+}
+
+.scrollable-table-body table {
+  margin-top: -1px; /* Overlap with header */
+  margin-bottom: 0;
+}
+.table-wrapper {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  position: relative;
+  min-height:250px;
+}
+
+/* Keep the header sticky */
+.table-header th {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 0;
+}

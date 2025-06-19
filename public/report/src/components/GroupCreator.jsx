@@ -1,21 +1,19 @@
+
 import React, { useState } from 'react';
 
 const GroupCreator = ({ onCreate, onClose }) => {
-  const [groupName, setGroupName] = useState('');
   const [selectedOption1, setSelectedOption1] = useState('');
   const [selectedOption2, setSelectedOption2] = useState('');
-  const [selectedOption3, setSelectedOption3] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onCreate({
       name: groupName,
-      options: [selectedOption1, selectedOption2, selectedOption3]
+      options: [selectedOption1, selectedOption2]
     });
-    setGroupName('');
+    setGroupName(selectedOption1+'_'+selectedOption2);
     setSelectedOption1('');
     setSelectedOption2('');
-    setSelectedOption3('');
     onClose();
   };
 
