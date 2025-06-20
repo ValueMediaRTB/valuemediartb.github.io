@@ -566,7 +566,7 @@ async function sendManualRequest(){
 
         //preprocessing the request
         if(!String(url).endsWith("?"))
-            url = url.append("?");
+            url = String(url) + "?";
         type = String(type).toUpperCase();
         if(type == "GET")
             the_body = {};
@@ -584,6 +584,8 @@ async function sendManualRequest(){
         headers: { 'Content-Type': 'application/json' }
         });
         if (!response.ok) {
+            document.getElementById('resultTitle').innerHTML = "Sent manual request failed";
+            document.getElementById('resultContainer').innerHTML = "";
             console.error("In sendManualRequest(): received error response from server");
             return false;
         }
