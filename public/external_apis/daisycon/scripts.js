@@ -426,6 +426,37 @@ async function getMaterialDeeplinks(){
     }
     
 }
+async function getProducts(){
+    if(!access_token || access_token == "undefined"){
+        alert('In getProducts(): Access token is missing!');
+        return;
+    }
+    try {
+        validateAPIInput();
+        const response = await fetch(`${serverURL}/proxy` , {
+        method: 'POST',
+        body: JSON.stringify({
+            targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/product-feeds/products?order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
+            headers: { 'accept': 'application/json',
+            'Authorization':'Bearer '+access_token },
+            method:"GET"
+            ////,writeToFile: 1 use this in production mode
+            }),
+        headers: { 'Content-Type': 'application/json' }
+        });
+    
+
+        const data = await response.json();
+        // Handle the response (e.g., save access token)
+        document.getElementById('resultTitle').innerHTML = "Get products successful!"
+        document.getElementById('resultContainer').innerHTML = "Result in console"
+
+        console.log('Success:', data);
+    } catch (error) {
+        console.error('Error:', error);
+    }
+    
+}
 async function getMedias(){
     if(!access_token || access_token == "undefined"){
         alert('In getMedias(): Access token is missing!');
