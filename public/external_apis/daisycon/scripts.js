@@ -163,7 +163,7 @@ async function daisyconAuthLoaded(){
         document.getElementById('getCampaignMaterialBtn').disabled = true;
         document.getElementById('apiButtonsContainer').style.display = "none";
         const urlParams = new URLSearchParams(window.location.search);
-        token = urlParams.get('code'); ///
+        token = urlParams.get('code'); 
 
         if (token) {
             document.getElementById('tokenProcessed').value = token
