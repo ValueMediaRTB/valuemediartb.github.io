@@ -31,7 +31,7 @@
             
         </select>
     </div>
-    <div id="manualReqPanel">
+    <div id="manualReqPanel" style="margin-top:8px; margin-bottom:8px;">
         <div style="display: grid; grid-template-columns: auto 1fr; align-items: center; margin:8px; gap: 8px">
             <label style="grid-row: 1;" for="manualReqUrl">URL</label>
             <input style="width:100%; grid-row: 1;" id="manualReqUrl" type="text" required value="https://services.daisycon.com">
@@ -44,7 +44,7 @@
                 <option value="get" selected>GET</option>
                 <option value="post">POST</option>
             </select>
-            <button style="margin:8px;grid-row: 5;" type="button" id="manualReqBtn" onclick="sendManualRequest()">Send manual request</button>
+            <button style="grid-row: 5;" type="button" id="manualReqBtn" onclick="sendManualRequest()">Send manual request</button>
         </div>
     </div>
     <div style="margin:8px" id="accessResult"></div>

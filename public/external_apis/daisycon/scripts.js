@@ -560,9 +560,13 @@ async function sendManualRequest(){
         document.getElementById('resultContainer').innerHTML = "";
         validateAPIInput();
         let url = document.getElementById('manualReqUrl');
-        let the_headers = JSON.parse(document.getElementById('manualReqHeaders')) || {};
-        let the_body = JSON.parse(document.getElementById("manualReqBody")) || {};
+        let the_headers = JSON.parse(document.getElementById('manualReqHeaders').value) || {};
+        let the_body = JSON.parse(document.getElementById("manualReqBody").value) || {};
         let type = document.getElementById('manualReqType').value || "get";
+
+        //preprocessing the request
+        if(!String(url).endsWith("?"))
+            url = url.append("?");
         type = String(type).toUpperCase();
         if(type == "GET")
             the_body = {};
