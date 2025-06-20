@@ -397,7 +397,7 @@ async function getMaterialDeeplinks(){
     if(!access_token || access_token == "undefined"){
         alert('In getPrograms(): Access token is missing!');
         return;
-    }////
+    }//// //// ///
     try {
         validateAPIInput();
         document.getElementById('resultTitle').innerHTML = "Sent getMaterialDeeplinks request to server, waiting for response...";
