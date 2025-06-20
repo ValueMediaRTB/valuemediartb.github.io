@@ -570,7 +570,7 @@ async function sendManualRequest(){
         type = String(type).toUpperCase();
         if(type == "GET")
             the_body = {};
-        headers.Authorization = 'Bearer '+access_token;
+        the_headers.Authorization = 'Bearer '+access_token;
         
         const response = await fetch(`${serverURL}/proxy` , {
         method: 'POST',
