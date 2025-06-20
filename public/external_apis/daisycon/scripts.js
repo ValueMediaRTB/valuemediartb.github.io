@@ -565,7 +565,7 @@ async function sendManualRequest(){
         let type = document.getElementById('manualReqType').value || "get";
 
         //preprocessing the request
-        if(!String(url).endsWith("?"))
+        if(!String(url).includes("?"))
             url = String(url) + "?";
         type = String(type).toUpperCase();
         if(type == "GET")
