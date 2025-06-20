@@ -559,7 +559,7 @@ async function sendManualRequest(){
         document.getElementById('resultTitle').innerHTML = "Sent manual request to server, waiting for response...";
         document.getElementById('resultContainer').innerHTML = "";
         validateAPIInput();
-        let url = document.getElementById('manualReqUrl');
+        let url = document.getElementById('manualReqUrl').value;
         let the_headers = JSON.parse(document.getElementById('manualReqHeaders').value) || {};
         let the_body = JSON.parse(document.getElementById("manualReqBody").value) || {};
         let type = document.getElementById('manualReqType').value || "get";
