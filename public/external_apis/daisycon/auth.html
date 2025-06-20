@@ -31,6 +31,22 @@
             
         </select>
     </div>
+    <div id="manualReqPanel">
+        <div style="display: grid; grid-template-columns: auto 1fr; align-items: center; margin:8px; gap: 8px">
+            <label style="grid-row: 1;" for="manualReqUrl">URL</label>
+            <input style="width:100%; grid-row: 1;" id="manualReqUrl" type="text" required value="https://services.daisycon.com">
+            <label style="grid-row: 2;" for="manualReqBody">Body (json)</label>
+            <input style="width:100%;grid-row: 2;" id="manualReqBody" type="text" required value="{}">
+            <label style="grid-row: 2;" for="manualReqHeaders">Headers (json)</label>
+            <input style="width:100%;grid-row: 2;" id="manualReqHeaders" type="text" required value="{'Content-Type':'application/json'}">
+            <label style="grid-row: 2;" for="manualReqType">Type</label>
+            <select style="grid-row: 2; width:250px;" id="manualReqType" type="text" required>
+                <option value="get" selected>GET</option>
+                <option value="post">POST</option>
+            </select>
+            <button style="margin:8px" type="button" id="manualReqBtn" onclick="sendManualRequest()">Send manual request</button>
+        </div>
+    </div>
     <div style="margin:8px" id="accessResult"></div>
     <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="accessToken"></div>
     <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="refreshToken"></div>

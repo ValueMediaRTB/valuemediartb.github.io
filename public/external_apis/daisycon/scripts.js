@@ -162,6 +162,7 @@ async function daisyconAuthLoaded(){
         document.getElementById('accessDaisyconBtn').disabled = false;
         document.getElementById('getCampaignMaterialBtn').disabled = true;
         document.getElementById('apiButtonsContainer').style.display = "none";
+        document.getElementById('manualReqPanel').style.display = "none";
         const urlParams = new URLSearchParams(window.location.search);
         token = urlParams.get('code'); 
 
@@ -175,6 +176,7 @@ async function daisyconAuthLoaded(){
         document.getElementById('refreshToken').innerHTML = "Refresh token: "+refresh_token;
         document.getElementById('accessDaisyconBtn').disabled = true;
         document.getElementById('apiButtonsContainer').style.display = "block";
+        document.getElementById('manualReqPanel').style.display = "block";
         document.getElementById('getCampaignMaterialBtn').disabled = false;
         if(!media || media == "undefined"){
             getMediasResult = await getMedias();
@@ -267,6 +269,7 @@ async function accessDaisycon(){
         document.getElementById('refreshToken').innerHTML = "Refresh token: "+data.refresh_token;
         document.getElementById('accessDaisyconBtn').disabled = true;
         document.getElementById('apiButtonsContainer').style.display = "block";
+        document.getElementById('manualReqPanel').style.display = "block";
         document.getElementById('getCampaignMaterialBtn').disabled = false;
 
         access_token = data.access_token;
@@ -542,6 +545,49 @@ async function exportOffers(){
             downloadCSV(data.result,'daisyconOffers.csv');
             console.log('exportOffers() success:', data);
         }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+async function sendManualRequest(){
+    if(!access_token || access_token == "undefined"){
+        alert('In sendManualRequest(): Access token is missing!');
+        return;
+    }
+    try {
+        document.getElementById('resultTitle').innerHTML = "Sent manual request to server, waiting for response...";
+        document.getElementById('resultContainer').innerHTML = "";
+        validateAPIInput();
+        let url = document.getElementById('manualReqUrl');
+        let the_headers = JSON.parse(document.getElementById('manualReqHeaders')) || {};
+        let the_body = JSON.parse(document.getElementById("manualReqBody")) || {};
+        let type = document.getElementById('manualReqType').value || "get";
+        type = String(type).toUpperCase();
+        if(type == "GET")
+            the_body = {};
+        headers.Authorization = 'Bearer '+access_token;
+        
+        const response = await fetch(`${serverURL}/proxy` , {
+        method: 'POST',
+        body: JSON.stringify({
+            targetUrl:`${url}&order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
+            headers: the_headers,
+            method:type,
+            body: the_body
+            ////,writeToFile: 1 use this in production mode
+            }),
+        headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) {
+            console.error("In sendManualRequest(): received error response from server");
+            return false;
+        }
+
+        const data = await response.json();
+        document.getElementById('resultTitle').innerHTML = "Send manual request successful!"
+        document.getElementById('resultContainer').innerHTML = "Result in console"
+        console.log('Success:', data);
     } catch (error) {
         console.error('Error:', error);
     }
