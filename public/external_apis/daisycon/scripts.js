@@ -119,7 +119,7 @@ let serverURL;
 let media;
 let pageNr,pageSize,mediaID,mediaIDParam;
 const publisherID = 470796;
-const redirectURI = 'https://valuemediartb.github.io/external_apis/daisycon/auth.html'
+const redirectURI = 'https://valuemediartb.github.io/public/external_apis/daisycon/auth.html'
 
 async function initializeCodes() {
       codeVerifier = generateRandomString(getRandomInt(43,128));
