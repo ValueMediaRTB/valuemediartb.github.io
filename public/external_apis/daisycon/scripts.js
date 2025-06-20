@@ -436,7 +436,7 @@ async function getProducts(){
         const response = await fetch(`${serverURL}/proxy` , {
         method: 'POST',
         body: JSON.stringify({
-            targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/product-feeds/products?order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
+            targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/product-feeds/products?language_code=en&order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
             headers: { 'accept': 'application/json',
             'Authorization':'Bearer '+access_token },
             method:"GET"
