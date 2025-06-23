@@ -18,10 +18,10 @@ const NavigationBar = () => {
     <nav className="bg-dark text-white p-1 px-2">
       <ButtonGroup className="me-2" style={{ gap: '8px' }}>
         <Button variant="outline-light" size="sm">
-          <i className="bi bi-arrow-left"></i> Back
+          <i className="bi bi-arrow-left"></i> <span style={{fontSize:16}}>Back</span>
         </Button>
         <Button variant="outline-light" size="sm" onClick={handleResetCache}>
-          <i className="bi bi-arrow-counterclockwise"></i> Reset cache
+          <i className="bi bi-arrow-counterclockwise"></i> <span style={{fontSize:16}}>Reset cache</span>
         </Button>
       </ButtonGroup>
     </nav>

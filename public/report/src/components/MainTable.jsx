@@ -74,10 +74,10 @@ const MainTable = ({
 
   const formatCellValue = (value, key) => {
     if (typeof value === 'number') {
-      if (['cost', 'profit', 'revenue', 'cpc', 'epc'].includes(key)) {
-        return `$${value.toFixed(2)}`;
+      if (['cost', 'profit', 'revenue', 'cpc', 'epc','cr'].includes(key)) {
+        return `$${value.toFixed(7)}`;
       }
-      if (['cr'].includes(key)) {
+      if (['roi'].includes(key)) {
         return `${value.toFixed(2)}%`;
       }
     }

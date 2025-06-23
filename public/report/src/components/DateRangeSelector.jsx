@@ -85,7 +85,7 @@ const DateRangeSelector = ({ onDateChange, onFilterApply }) => {
       <div className="d-flex align-items-end gap-2 flex-wrap">
         {/* Date Picker with slightly increased width */}
         <div style={{ minWidth: '250px', display: 'grid' }}>
-          <div style={{ fontSize: '0.75rem', marginBottom: '2px', marginTop: '4px' }}>
+          <div style={{ fontSize: '0.9rem', marginBottom: '2px', marginTop: '4px' }}>
             {"Date"}
           </div>
           <DatePicker
@@ -153,7 +153,7 @@ const DateRangeSelector = ({ onDateChange, onFilterApply }) => {
               }}
             >
               <Form.Group className="mb-0">
-                <Form.Label style={{ fontSize: '0.75rem', marginBottom: '2px' }}>
+                <Form.Label style={{ fontSize: '0.9rem', marginBottom: '2px' }}>
                   {filter}
                 </Form.Label>
                 <div className="d-flex align-items-center">

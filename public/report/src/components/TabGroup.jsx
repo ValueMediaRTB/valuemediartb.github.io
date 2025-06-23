@@ -55,7 +55,7 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
     setCustomGroups(updatedGroups);
     
     if (activeTab === groupName) {
-      setActiveTab(DEFAULT_TAB_OPTIONS[0]);
+      setActiveTab(null);
     }
   };
 
@@ -70,13 +70,11 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
         if (customGroups.some(group => group.name === activeTab)) {
           const group = customGroups.find(g => g.name === activeTab);
           data = data.map(item => ({
-            ...item,
             [group.options[0].toLowerCase()]: item.primary_value || "",
-            [group.options[1].toLowerCase()]: item.secondary_value || ""
+            [group.options[1].toLowerCase()]: item.secondary_value || "",
+            ...item
           }));
-          console.log(data)
         }
-
         setTableData(data);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -147,31 +145,21 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
 const columns = useMemo(() => {
   // Handle custom groups as before
   const customGroup = customGroups.find(group => group.name === activeTab);
-  if (customGroup) {
-    return [
-      { key: customGroup.options[0].toLowerCase(), label: customGroup.options[0], sortable: true },
-      { key: customGroup.options[1].toLowerCase(), label: customGroup.options[1], sortable: true },
-      { key: 'clicks', label: 'Clicks', sortable: true, numeric: true },
-      { key: 'conversions', label: 'Conversions', sortable: true, numeric: true },
-      { key: 'cost', label: 'Cost', sortable: true, numeric: true },
-      { key: 'profit', label: 'Profit', sortable: true, numeric: true },
-      { key: 'revenue', label: 'Revenue', sortable: true, numeric: true },
-      { key: 'cpc', label: 'CPC', sortable: true, numeric: true },
-      { key: 'epc', label: 'EPC', sortable: true, numeric: true },
-      { key: 'cr', label: 'CR', sortable: true, numeric: true }
-    ];
-  }
-
-  // Dynamic columns based on first row of data
   if (tableData.length > 0) {
+    // Dynamic columns based on first row of data
     const firstRow = tableData[0];
-
-    return Object.keys(firstRow).map(key => ({
+    let headers = Object.keys(firstRow).map(key => ({
       key,
       label: key.charAt(0).toUpperCase() + key.slice(1), // basic label formatting
       sortable: true,
       numeric: typeof firstRow[key] === 'number'
     }));
+    headers = headers.filter(header => header.key != 'date');
+    if (customGroup) {
+      headers = headers.filter(header => header.key != 'primary_type' && header.key != 'secondary_type' && header.key != 'primary_value' && header.key != 'secondary_value');
+    }
+    //not a group tab
+    return headers;
   }
 
   // Fallback: show minimal if no data yet
