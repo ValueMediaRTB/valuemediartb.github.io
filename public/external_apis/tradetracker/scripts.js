@@ -10,7 +10,6 @@ function tradeTrackerIndexLoaded(){
 }
 function validateInput(){
     serverURL = document.getElementById('serverURLInput').value;
-    accountID = document.getElementById('accountInput').value;
     if(!serverURL || serverURL == "undefined" || serverURL == "")
         return false;
     sessionStorage.setItem('serverURL',serverURL);
