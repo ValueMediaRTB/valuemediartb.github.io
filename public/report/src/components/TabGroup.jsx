@@ -189,15 +189,28 @@ const columns = useMemo(() => {
               <Nav.Link 
                 eventKey={group.name}
                 onClick={() => handleTabSelect(group.name)}
-                className="d-flex align-items-center"
                 disabled={!dateRange.start || !dateRange.end  || isLoading}
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center',
+                  minHeight: 'auto',
+                  paddingTop: '0.5rem',
+                  paddingBottom: '0.5rem'
+                }}
               >
-                {group.name}
+                <span>{group.name}</span>
                 <Button 
                   variant="link" 
-                  className="text-danger p-0 ms-2"
+                  className="text-danger p-0 ms-1"
                   onClick={(e) => handleDeleteGroup(group.name, e)}
-                  style={{ fontSize: '0.75rem' }}
+                  style={{ 
+                    fontSize: '1.2rem',
+                    lineHeight: '1',
+                    minWidth: 'auto',
+                    height: 'auto',
+                    border: 'none',
+                    background: 'none'
+                  }}
                   disabled={!dateRange.start || !dateRange.end  || isLoading}
                 >
                   ×

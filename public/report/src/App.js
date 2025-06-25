@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import NavigationBar from './components/NavigationBar';
@@ -7,19 +7,35 @@ import TabGroup from './components/TabGroup';
 import 'react-datepicker/dist/react-datepicker.css';
 
 function App() {
-  const [dateRange, setDateRange] = useState({ start: null, end: null });
+  // Initialize with default last 7 days
+  const getDefaultLast7Days = () => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - 6);
+    return { start, end };
+  };
+
+  const [dateRange, setDateRange] = useState(getDefaultLast7Days());
   const [activeTab, setActiveTab] = useState(null);
   const [filters, setFilters] = useState([]);
+  const [availableColumns, setAvailableColumns] = useState([]);
 
-  const handleDateChange = (dates) => {
+  const handleColumnsUpdate = useCallback((columns) => {
+    setAvailableColumns(columns);
+  }, []);
+
+  const handleDateChange = useCallback((dates, hasDateChanged = true) => {
     setDateRange(dates);
-    setActiveTab(null); // Reset active tab when dates change
-  };
+    // Only reset active tab if dates actually changed
+    if (hasDateChanged) {
+      setActiveTab(null);
+    }
+  }, []);
 
-  const handleFilterApply = (newFilters) => {
+  const handleFilterApply = useCallback((newFilters) => {
     setFilters(newFilters);
     // You might want to refetch data here when filters change
-  };
+  }, []);
 
   return (
     <div className="app-container d-flex flex-column vh-100">
@@ -28,12 +44,15 @@ function App() {
         <DateRangeSelector 
           onDateChange={handleDateChange} 
           onFilterApply={handleFilterApply}
+          currentDateRange={dateRange}
+          availableColumns={availableColumns}
         />
         <TabGroup
           dateRange={dateRange}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           filters={filters}
+          onColumnsUpdate={handleColumnsUpdate}
         />
       </div>
     </div>

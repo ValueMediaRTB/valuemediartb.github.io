@@ -8,6 +8,8 @@ export const fetchTableData = async (tabType, dateRange, filters) => {
       const day = String(date.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
     };
+    console.log("frontend filters");
+    console.log(filters);
     const response = await fetch(`http://localhost:3000/reportAPI/${tabType.toLowerCase()}`, {
       method: 'POST',
       headers: {

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Value Media - TradeTracker</title>
+    <h3 style="margin:8px;">TradeTracker API</h3>
+    <button style="margin:8px"  onclick="window.location.href='/public/index.html'"> Home </button>
+    <form id="tradeTrackerForm">
+        <div style="display: grid; grid-template-columns: auto 1fr; align-items: center; margin:8px; gap: 8px">
+            
+        </div>
+        <button id="tradeTrackerExportOffersBtn" style="margin:8px" type="button" onclick="exportOffers()">Export Offers</button>
+    </form>
+    <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="resultTitle"></div>
+    <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="resultContainer"></div>
+    <script src="scripts.js" defer></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            tradeTrackerIndexLoaded();
+        });
+    </script>
+</body>
+
+</html>
