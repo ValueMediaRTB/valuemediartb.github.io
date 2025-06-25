@@ -8,7 +8,8 @@
     <button style="margin:8px"  onclick="window.location.href='/public/index.html'"> Home </button>
     <form id="tradeTrackerForm">
         <div style="display: grid; grid-template-columns: auto 1fr; align-items: center; margin:8px; gap: 8px">
-            
+            <label for="serverURLInput" style="grid-row: 2;">Server URL:</label>
+            <input style="width:250px; grid-row: 2;" id="serverURLInput" type="text" required>
         </div>
         <button id="tradeTrackerExportOffersBtn" style="margin:8px" type="button" onclick="exportOffers()">Export Offers</button>
     </form>
