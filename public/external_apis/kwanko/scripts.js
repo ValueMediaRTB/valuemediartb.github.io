@@ -124,7 +124,7 @@ async function kwankoAuth(){
                     targetUrl:`https://api.kwanko.com`,
                     headers: { 'Authorization': 'Bearer '+kwankoToken},
                     method:"GET",
-                    body:{user:document.getElementById('accountInput').value}
+                    body:{}
                 }
             ]
             }),
