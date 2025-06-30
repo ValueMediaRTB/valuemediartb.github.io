@@ -110,6 +110,10 @@ function convertToCSV(data) {
 }
 
 async function kwankoAuth(){
+    if(!validateInput()){
+        alert('In kwanko/auth(): Invalid input!');
+        return;
+    }
     try {
         const kwankoToken = document.getElementById('kwankoTokenInput').value;
         document.getElementById('resultTitle').innerHTML = "Sent authorize request to server, waiting for response...";
