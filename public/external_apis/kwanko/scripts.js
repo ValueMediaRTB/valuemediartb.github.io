@@ -4,17 +4,28 @@ let kwankoAuthorized = true;
 let kwankoToken;
 
 function kwankoAuthorizedIndexLoaded(){
-   serverURL = sessionStorage.getItem('serverURL',serverURL);
+   serverURL = sessionStorage.getItem('serverURL');
+   kwankoToken = sessionStorage.getItem('kwankoToken');
     if(!serverURL || serverURL == "undefined"){}
     else{
         document.getElementById('serverURLInput').value = serverURL;
     }
+    if(!kwankoToken || kwankoToken == "undefined"){}
+    else{
+        document.getElementById('kwankoTokenInput').value = kwankoToken;
+    }
 }
 function validateInput(){
     serverURL = document.getElementById('serverURLInput').value;
-    if(!serverURL || serverURL == "undefined" || serverURL == "")
+    if(!serverURL || serverURL == "undefined" || serverURL == ""){
         return false;
+    }
     sessionStorage.setItem('serverURL',serverURL);
+    kwankoToken = document.getElementById('kwankoTokenInput').value;
+    if(!kwankoToken || kwankoToken == "undefined" || kwankoToken == ""){
+        return false;
+    }
+    sessionStorage.setItem('kwankoToken',kwankoToken);
     return true;
 }
 function downloadCSV(data, filename = 'data.csv') {
@@ -109,7 +120,6 @@ async function kwankoAuth(){
         return;
     }
     try {
-        kwankoToken = document.getElementById('kwankoTokenInput').value;
         document.getElementById('resultTitle').innerHTML = "Sent authorize request to server, waiting for response...";
         const response = await fetch(`${serverURL}/proxy` , {
         method: 'POST',
