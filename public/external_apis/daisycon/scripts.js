@@ -336,14 +336,14 @@ function validateAPIInput(required){
     mediaIDParam = ( mediaID != 0 ? "media_id=${mediaID}&" : "");
     programID = document.getElementById('programIDInput').value || 0;
     if(required.includes('mediaID') && mediaID == 0){
-        document.getElementById('mediaIDrequired').innerHTML = 'is required!';
+        document.getElementById('mediaIDrequired').innerHTML = 'Media ID is required!';
         valid = false;
     }
     else{
         document.getElementById('mediaIDrequired').innerHTML = '';
     }
     if(required.contains('programID') && programID == 0){
-        document.getElementById('programIDrequired').innerHTML = 'is required!';
+        document.getElementById('programIDrequired').innerHTML = 'Program ID is required!';
         valid = false;
     }
     else{
