@@ -1,6 +1,6 @@
 let serverURL;
 let accountID;
-let kwankoAuthorized = false;
+let kwankoAuthorized = true;
 let kwankoToken;
 
 function kwankoAuthorizedIndexLoaded(){
@@ -8,12 +8,6 @@ function kwankoAuthorizedIndexLoaded(){
     if(!serverURL || serverURL == "undefined"){}
     else{
         document.getElementById('serverURLInput').value = serverURL;
-    }
-    if(!kwankoAuthorized){
-        document.getElementById('kwankoAPIButtons').style.display = "none";
-    }
-    else{
-        document.getElementById('kwankoAPIButtons').style.display = "block";
     }
 }
 function validateInput(){
