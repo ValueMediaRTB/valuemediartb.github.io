@@ -335,7 +335,7 @@ function validateAPIInput(required){
     mediaID = document.getElementById('mediaIDInput').value || 0;
     mediaIDParam = ( mediaID != 0 ? "media_id=${mediaID}&" : "");
     programID = document.getElementById('programIDInput').value || 0;
-    if(required.contains('mediaID') && mediaID == 0){
+    if(required.includes('mediaID') && mediaID == 0){
         document.getElementById('mediaIDrequired').innerHTML = 'is required!';
         valid = false;
     }
