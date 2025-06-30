@@ -109,7 +109,7 @@ async function kwankoAuth(){
         return;
     }
     try {
-        const kwankoToken = document.getElementById('kwankoTokenInput').value;
+        kwankoToken = document.getElementById('kwankoTokenInput').value;
         document.getElementById('resultTitle').innerHTML = "Sent authorize request to server, waiting for response...";
         const response = await fetch(`${serverURL}/proxy` , {
         method: 'POST',
@@ -146,6 +146,7 @@ async function exportOffers(){
         return;
     }
     try {
+        kwankoToken = document.getElementById('kwankoTokenInput').value;
         document.getElementById('resultTitle').innerHTML = "Sent exportOffers request to server, waiting for response...";
         const response = await fetch(`${serverURL}/export` , {
         method: 'POST',
