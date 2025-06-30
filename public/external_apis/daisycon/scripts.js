@@ -342,7 +342,7 @@ function validateAPIInput(required){
     else{
         document.getElementById('mediaIDrequired').innerHTML = '';
     }
-    if(required.contains('programID') && programID == 0){
+    if(required.includes('programID') && programID == 0){
         document.getElementById('programIDrequired').innerHTML = 'Program ID is required!';
         valid = false;
     }
