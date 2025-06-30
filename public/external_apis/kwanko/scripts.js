@@ -157,7 +157,7 @@ async function exportOffers(){
                 },
                 {
                     commandName:"getCampaigns",
-                    targetUrl:`https://api.kwanko.com/publishers/campaigns`,
+                    targetUrl:`https://api.kwanko.com/publishers/ads`,
                     headers: { 'Authorization':'Bearer '+kwankoToken},
                     method:"GET",
                     body:{}
