@@ -157,7 +157,7 @@ async function exportOffers(){
                 },
                 {
                     commandName:"getCampaigns",
-                    targetUrl:`https://api.kwanko.com/publishers/ads`,
+                    targetUrl:`https://api.kwanko.com/publishers/ads?ad_types=deeplink`,
                     headers: { 'Authorization':'Bearer '+kwankoToken},
                     method:"GET",
                     body:{}
