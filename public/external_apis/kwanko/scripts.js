@@ -3,7 +3,7 @@ let accountID;
 let kwankoAuthorized = true;
 let kwankoToken;
 
-function kwankoAuthorizedIndexLoaded(){
+function kwankoIndexLoaded(){
    serverURL = sessionStorage.getItem('serverURL');
    kwankoToken = sessionStorage.getItem('kwankoToken');
     if(!serverURL || serverURL == "undefined"){}
