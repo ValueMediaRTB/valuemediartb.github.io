@@ -117,7 +117,7 @@ let access_token;
 let refresh_token;
 let serverURL;
 let media;
-let pageNr,pageSize,mediaID,mediaIDParam;
+let pageNr,pageSize,mediaID,programID,mediaIDParam;
 const publisherID = 470796;
 const redirectURI = 'https://valuemediartb.github.io/public/external_apis/daisycon/auth.html'
 
@@ -328,11 +328,28 @@ async function refreshAccessDaisycon(){
       }
 }
 
-function validateAPIInput(){
+function validateAPIInput(required){
+    valid = true;
     pageNr = document.getElementById('pageInput').value || 1;
     pageSize = document.getElementById('pageSizeInput').value || 1000;
     mediaID = document.getElementById('mediaIDInput').value || 0;
-    mediaIDParam = ( mediaID != 0 ? "media_id=${mediaID}&" : "")
+    mediaIDParam = ( mediaID != 0 ? "media_id=${mediaID}&" : "");
+    programID = document.getElementById('programIDInput').value || 0;
+    if(required.contains('mediaID') && mediaID == 0){
+        document.getElementById('mediaIDrequired').innerHTML = 'is required!';
+        valid = false;
+    }
+    else{
+        document.getElementById('mediaIDrequired').innerHTML = '';
+    }
+    if(required.contains('programID') && programID == 0){
+        document.getElementById('programIDrequired').innerHTML = 'is required!';
+        valid = false;
+    }
+    else{
+        document.getElementById('programIDrequired').innerHTML = '';
+    }
+    return valid;
 }
 
 async function getCampaignMaterial(){
@@ -544,6 +561,45 @@ async function exportOffers(){
 
             downloadCSV(data.result,'daisyconOffers.csv');
             console.log('exportOffers() success:', data);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+async function subscribeProgram(){
+    if(!access_token || access_token == "undefined"){
+        alert('In sendManualRequest(): Access token is missing!');
+        return;
+    }
+    validateAPIInput(['mediaID','programID']);
+    try {
+        pageNr = document.getElementById('pageInput').value || 1;
+        pageSize = document.getElementById('pageSizeInput').value || 1000;
+        document.getElementById('resultTitle').innerHTML = "Sent subscribeProgram request to server, waiting for response...";
+        document.getElementById('resultContainer').innerHTML = "";
+        const response = await fetch(`${serverURL}/proxy` , {
+        method: 'POST',
+        body: JSON.stringify({
+            commandName:"subscribeProgram",
+            targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs/${programID}/subscriptions/${mediaID}`,
+            headers: { 'accept': 'application/json',
+            'Authorization':'Bearer '+access_token },
+            method:"POST"
+        }),
+        headers: { 'Content-Type': 'application/json' }
+        });
+
+        // First check if the HTTP request itself succeeded
+        if (!response.ok) {
+            console.error("In subscribeProgram(): received error response from server");
+            document.getElementById('resultTitle').innerHTML = "subscribeProgram failed! Received response "+response.status;
+        }
+        else{
+            const data = await response.json();
+            document.getElementById('resultTitle').innerHTML = "Subscribe program successful!";
+            document.getElementById('resultContainer').innerHTML = JSON.stringify(data);
+
+            console.log('subscribeProgram() success:', data);
         }
     } catch (error) {
         console.error('Error:', error);

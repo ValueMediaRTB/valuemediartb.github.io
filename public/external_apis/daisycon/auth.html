@@ -13,12 +13,15 @@
             <input style="width:100%;grid-row: 2;" id="codeVerificationInput" type="text" required>
         </div>
         <button style="margin:8px" type="button" id="accessDaisyconBtn" onclick="accessDaisycon()">Access Daisycon API</button>
+        <hr>
+        <div style="font-weight:bold; margin:8px;">Daisycon API functions</div>
         <div id="apiButtonsContainer" style="display:none;">
+            <button style="margin:8px" type="button" id="refreshAccessTokenBtn" onclick="refreshAccessDaisycon()">Refresh Token</button>
             <button style="margin:8px" type="button" id="exportOffersBtn" onclick="exportOffers()">Export Offers</button>
             <button style="margin:8px" type="button" id="getCampaignMaterialBtn" onclick="getPrograms()">Get Programs</button>
             <button style="margin:8px" type="button" id="getMaterialDeeplinksBtn" onclick="getMaterialDeeplinks()">Get Ads With Deeplinks</button>
             <button style="margin:8px" type="button" id="getProductsBtn" onclick="getProducts()">Get Products</button>
-            <button style="margin:8px" type="button" id="refreshAccessTokenBtn" onclick="refreshAccessDaisycon()">Refresh Token</button>
+            <button style="margin:8px" type="button" id="refreshAccessTokenBtn" onclick="subscribeProgram()">Subscribe to program</button>
         </div>
     </form>
     <div id="configPanel" style="display: grid; grid-template-columns: max-content auto max-content auto; align-items: center; margin:8px; gap: 8px;justify-items:start;">
@@ -27,10 +30,16 @@
         <label style="grid-row: 1;" for="pageSizeInput">Page size</label>
         <input style="grid-row: 1; width:150px;" id="pageSizeInput" type="text" required>
         <label style="grid-row: 2;" for="mediaIDInput">Media ID</label>
+        <div style="grid-row: 2;color:red" id="mediaIDrequired"></label>
         <select style="grid-row: 2; width:250px;" id="mediaIDInput" type="text" required>
+        <label style="grid-row: 2;" for="programIDInput">Program ID</label>
+        <div style="grid-row: 2;color:red" id="programIDrequired"></label>
+        <select style="grid-row: 2; width:250px;" id="programIDInput" type="text" required>
             
         </select>
     </div>
+    <hr>
+    <div style="font-weight:bold; margin:8px;">Send a manual API request</div>
     <div id="manualReqPanel" style="margin-top:16px; margin-bottom:16px;">
         <div style="display: grid; grid-template-columns: auto 1fr; align-items: center; margin:8px; gap: 8px">
             <label style="grid-row: 1;" for="manualReqUrl">URL</label>
@@ -47,6 +56,7 @@
             <button style="grid-row: 5;" type="button" id="manualReqBtn" onclick="sendManualRequest()">Send manual request</button>
         </div>
     </div>
+    <hr>
     <div style="margin:8px" id="accessResult"></div>
     <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="accessToken"></div>
     <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="refreshToken"></div>
