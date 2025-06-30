@@ -24,19 +24,21 @@
             <button style="margin:8px" type="button" id="refreshAccessTokenBtn" onclick="subscribeProgram()">Subscribe to program</button>
         </div>
     </form>
-    <div id="configPanel" style="display: grid; grid-template-columns: max-content auto max-content auto; align-items: center; margin:8px; gap: 8px;justify-items:start;">
+    <div id="configPanel" style="display: grid; grid-template-columns: max-content auto max-content auto; align-items: center; margin:8px;margin-bottom:16px; gap: 8px;justify-items:start;">
         <label style="grid-row: 1;" for="pageInput">Page number</label>
-        <input style="grid-row: 1; width:150px; " id="pageInput" type="text" required>
+        <input style="grid-row: 1; width:150px;" id="pageInput" type="text" required>
         <label style="grid-row: 1;" for="pageSizeInput">Page size</label>
         <input style="grid-row: 1; width:150px;" id="pageSizeInput" type="text" required>
+        
         <label style="grid-row: 2;" for="mediaIDInput">Media ID</label>
-        <div style="grid-row: 2;color:red" id="mediaIDrequired"></div>
-        <select style="grid-row: 2; width:250px;" id="mediaIDInput" type="text" required>
+        <select style="grid-row: 2; width:250px;" id="mediaIDInput" required></select>
         <label style="grid-row: 2;" for="programIDInput">Program ID</label>
-        <div style="grid-row: 2;color:red" id="programIDrequired"></div>
-        <select style="grid-row: 2; width:250px;" id="programIDInput" type="text" required>
-            
-        </select>
+        <select style="grid-row: 2; width:250px;" id="programIDInput" required></select>
+        
+        <div style="grid-row: 3; color:red" id="mediaIDrequired"></div>
+        <div style="grid-row: 3;"></div>
+        <div style="grid-row: 3; color:red" id="programIDrequired"></div>
+        <div style="grid-row: 3;"></div>
     </div>
     <hr>
     <div style="font-weight:bold; margin:8px;">Send a manual API request</div>
