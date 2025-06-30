@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Value Media - Kwanko</title>
+    <h3 style="margin:8px;">Kwanko API</h3>
+    <button style="margin:8px"  onclick="window.location.href='/public/index.html'"> Home </button>
+    <form id="adPumpForm">
+        <div style="display: grid; grid-template-columns: auto 1fr; align-items: center; margin:8px; gap: 8px">
+            <label for="serverURLInput" style="grid-row: 1;">Server URL:</label>
+            <input style="width:250px; grid-row: 1;" id="serverURLInput" type="text" required>
+            <label for="kwankoTokenInput" style="grid-row: 2;">API Token:</label>
+            <input style="width:250px; grid-row: 2;" id="kwankoTokenInput" type="text" required>
+        </div>
+        <button id="kwankoAuthBtn" style="margin:8px" type="button" onclick=kwankoAuth()>Authorize</button>
+        <div id="kwankoAPIButtons" style="display:none">
+            <button id="kwankoExportOffersBtn" style="margin:8px" type="button" onclick=exportOffers()>Export Offers</button>
+        </div>
+    </form>
+    <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="resultTitle"></div>
+    <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="resultContainer"></div>
+    <script src="scripts.js" defer></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            kwankoIndexLoaded();
+        });
+    </script>
+</body>
+
+</html>

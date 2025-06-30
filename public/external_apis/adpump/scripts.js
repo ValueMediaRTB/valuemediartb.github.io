@@ -1,5 +1,7 @@
 let serverURL;
 let accountID;
+let adPumpToken
+let adPumpAuthorized = false;
 
 function tradeTrackerIndexLoaded(){
    serverURL = sessionStorage.getItem('serverURL',serverURL);
@@ -101,9 +103,51 @@ function convertToCSV(data) {
     throw new Error('Unsupported data format. Expected: array of objects, array of strings, object with array values, or JSON string.');
 }
 
+async function adPumpAuth(){
+    try {
+        const adPumpToken = document.getElementById('adPumpTokenInput').value;
+        document.getElementById('resultTitle').innerHTML = "Sent authorize request to server, waiting for response...";
+        const response = await fetch(`${serverURL}/proxy` , {
+        method: 'POST',
+        body: JSON.stringify({
+            commands : [  
+                {
+                    commandName:"adPumpAuth"
+                },
+                {
+                    targetUrl:`https://app.partnerboost.com/api.php?mod=medium&op=monetization_api`,
+                    headers: { 'Authorization': 'Bearer ',
+                        'accept':'application/json' },
+                    method:"GET",
+                    body:{user:document.getElementById('accountInput').value}
+                }
+            ]
+            }),
+        headers: { 'Content-Type': 'application/json' }
+        });
+
+        // First check if the HTTP request itself succeeded
+        if (!response.ok) {
+            console.error("In adPump/auth(): received error response from server");
+            document.getElementById('resultTitle').innerHTML = "adPump/auth failed! Received response "+response.status;
+        }
+        else{
+            const data = await response.json();
+            document.getElementById('resultTitle').innerHTML = "Auth successful!";
+
+            document.getElementById('resultContainer').innerHTML = "";
+            
+                
+            console.log('adPump/auth() success:', data);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
 async function exportOffers(){
     if(!validateInput()){
-        alert('In TradeTracker/exportOffers(): Invalid input!');
+        alert('In adPump/exportOffers(): Invalid input!');
         return;
     }
     try {
@@ -113,14 +157,13 @@ async function exportOffers(){
         body: JSON.stringify({
             commands : [  
                 {
-                    commandName:"tradeTrackerOffers"
+                    commandName:"adPumpOffers"
                 },
                 {
-                    /* replace with tradetracker commands
-                    commandName:"getBrands",
-                    targetUrl:`https://app.partnerboost.com/api.php?mod=medium&op=monetization_api`,
-                    headers: { 'Content-Type': 'application/json',
-                        'accept':'application/json' },
+                    /*
+                    commandName:"getCampaigns",
+                    targetUrl:`https://api.kwanko.com/publishers/campaigns`,
+                    headers: { 'Authorization':'Bearer '+token },
                     method:"POST",
                     body:{user:document.getElementById('accountInput').value}*/
                 }
@@ -131,17 +174,17 @@ async function exportOffers(){
 
         // First check if the HTTP request itself succeeded
         if (!response.ok) {
-            console.error("In TradeTracker/exportOffers(): received error response from server");
-            document.getElementById('resultTitle').innerHTML = "TradeTracker/exportOffers failed! Received response "+response.status;
+            console.error("In adPump/exportOffers(): received error response from server");
+            document.getElementById('resultTitle').innerHTML = "adPump/exportOffers failed! Received response "+response.status;
         }
         else{
             const data = await response.json();
             document.getElementById('resultTitle').innerHTML = "Export offers successful!";
 
-            document.getElementById('resultContainer').innerHTML = "Downloading tradeTrackerOffers.csv...";
-            downloadCSV(data.result,'tradeTrackerOffers.csv');
+            document.getElementById('resultContainer').innerHTML = "Downloading adPumpOffers.csv...";
+            downloadCSV(data.result,'adPumpOffers.csv');
                 
-            console.log('TradeTracker/exportOffers() success:', data);
+            console.log('adPump/exportOffers() success:', data);
         }
     } catch (error) {
         console.error('Error:', error);

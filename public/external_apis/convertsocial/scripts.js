@@ -1,7 +1,8 @@
 let serverURL;
 let accountID;
+let authorized = false;
 
-function tradeTrackerIndexLoaded(){
+function convertSocialIndexLoaded(){
    serverURL = sessionStorage.getItem('serverURL',serverURL);
     if(!serverURL || serverURL == "undefined"){}
     else{
@@ -101,9 +102,51 @@ function convertToCSV(data) {
     throw new Error('Unsupported data format. Expected: array of objects, array of strings, object with array values, or JSON string.');
 }
 
+async function convertSocialAuth(){
+    try {
+        const token = document.getElementById('convertSocialTokenInput').value;
+        document.getElementById('resultTitle').innerHTML = "Sent authorize request to server, waiting for response...";
+        const response = await fetch(`${serverURL}/proxy` , {
+        method: 'POST',
+        body: JSON.stringify({
+            commands : [  
+                {
+                    commandName:"convertSocialAuth"
+                },
+                {
+                    targetUrl:`https://app.partnerboost.com/api.php?mod=medium&op=monetization_api`,
+                    headers: { 'Authorization': 'Bearer ',
+                        'accept':'application/json' },
+                    method:"GET",
+                    body:{user:document.getElementById('accountInput').value}
+                }
+            ]
+            }),
+        headers: { 'Content-Type': 'application/json' }
+        });
+
+        // First check if the HTTP request itself succeeded
+        if (!response.ok) {
+            console.error("In convertSocial/exportOffers(): received error response from server");
+            document.getElementById('resultTitle').innerHTML = "convertSocial/exportOffers failed! Received response "+response.status;
+        }
+        else{
+            const data = await response.json();
+            document.getElementById('resultTitle').innerHTML = "Auth successful!";
+
+            document.getElementById('resultContainer').innerHTML = "";
+            
+                
+            console.log('convertSocial/auth() success:', data);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
 async function exportOffers(){
     if(!validateInput()){
-        alert('In TradeTracker/exportOffers(): Invalid input!');
+        alert('In convertSocial/exportOffers(): Invalid input!');
         return;
     }
     try {
@@ -113,7 +156,7 @@ async function exportOffers(){
         body: JSON.stringify({
             commands : [  
                 {
-                    commandName:"tradeTrackerOffers"
+                    commandName:"convertSocialOffers"
                 },
                 {
                     /* replace with tradetracker commands
@@ -131,17 +174,17 @@ async function exportOffers(){
 
         // First check if the HTTP request itself succeeded
         if (!response.ok) {
-            console.error("In TradeTracker/exportOffers(): received error response from server");
-            document.getElementById('resultTitle').innerHTML = "TradeTracker/exportOffers failed! Received response "+response.status;
+            console.error("In convertSocial/exportOffers(): received error response from server");
+            document.getElementById('resultTitle').innerHTML = "convertSocial/exportOffers failed! Received response "+response.status;
         }
         else{
             const data = await response.json();
             document.getElementById('resultTitle').innerHTML = "Export offers successful!";
 
-            document.getElementById('resultContainer').innerHTML = "Downloading tradeTrackerOffers.csv...";
-            downloadCSV(data.result,'tradeTrackerOffers.csv');
+            document.getElementById('resultContainer').innerHTML = "Downloading convertSocial.csv...";
+            downloadCSV(data.result,'convertSocial.csv');
                 
-            console.log('TradeTracker/exportOffers() success:', data);
+            console.log('convertSocial/exportOffers() success:', data);
         }
     } catch (error) {
         console.error('Error:', error);

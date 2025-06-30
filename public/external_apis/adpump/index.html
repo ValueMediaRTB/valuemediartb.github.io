@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Value Media - AdPump</title>
+    <h3 style="margin:8px;">AdPump API</h3>
+    <button style="margin:8px"  onclick="window.location.href='/public/index.html'"> Home </button>
+    <form id="adPumpForm">
+        <div style="display: grid; grid-template-columns: auto 1fr; align-items: center; margin:8px; gap: 8px">
+            <label for="serverURLInput" style="grid-row: 1;">Server URL:</label>
+            <input style="width:250px; grid-row: 1;" id="serverURLInput" type="text" required>
+            <label for="adPumpTokenInput" style="grid-row: 2;">API Token:</label>
+            <input style="width:250px; grid-row: 2;" id="adPumpTokenInput" type="text" required>
+        </div>
+        <button id="adPumpAuthBtn" style="margin:8px" type="button" onclick=adPumpAuth()>Authorize</button>
+        <div id="adPumpAPIButtons" style="display:none">
+            <button id="adPumpExportOffersBtn" style="margin:8px" type="button" onclick=exportOffers()>Export Offers</button>
+        </div>
+    </form>
+    <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="resultTitle"></div>
+    <div style="margin:8px;overflow-wrap: break-word; word-break: break-all;" id="resultContainer"></div>
+    <script src="scripts.js" defer></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            adPumpIndexLoaded();
+        });
+    </script>
+</body>
+
+</html>

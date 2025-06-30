@@ -1,11 +1,19 @@
 let serverURL;
 let accountID;
+let kwankoAuthorized = false;
+let kwankoToken;
 
-function tradeTrackerIndexLoaded(){
+function kwankoAuthorizedIndexLoaded(){
    serverURL = sessionStorage.getItem('serverURL',serverURL);
     if(!serverURL || serverURL == "undefined"){}
     else{
         document.getElementById('serverURLInput').value = serverURL;
+    }
+    if(!kwankoAuthorized){
+        document.getElementById('kwankoAPIButtons').style.display = "none";
+    }
+    else{
+        document.getElementById('kwankoAPIButtons').style.display = "block";
     }
 }
 function validateInput(){
@@ -101,9 +109,49 @@ function convertToCSV(data) {
     throw new Error('Unsupported data format. Expected: array of objects, array of strings, object with array values, or JSON string.');
 }
 
+async function kwankoAuth(){
+    try {
+        const kwankoToken = document.getElementById('kwankoTokenInput').value;
+        document.getElementById('resultTitle').innerHTML = "Sent authorize request to server, waiting for response...";
+        const response = await fetch(`${serverURL}/proxy` , {
+        method: 'POST',
+        body: JSON.stringify({
+            commands : [  
+                {
+                    commandName:"kwankoAuth"
+                },
+                {
+                    targetUrl:`https://api.kwanko.com`,
+                    headers: { 'Authorization': 'Bearer '+kwankoToken},
+                    method:"GET",
+                    body:{user:document.getElementById('accountInput').value}
+                }
+            ]
+            }),
+        headers: { 'Content-Type': 'application/json' }
+        });
+
+        // First check if the HTTP request itself succeeded
+        if (!response.ok) {
+            console.error("In kwanko/auth(): received error response from server");
+            document.getElementById('resultTitle').innerHTML = "kwanko/auth failed! Received response "+response.status;
+        }
+        else{
+            const data = await response.json();
+            document.getElementById('resultTitle').innerHTML = "Auth successful!";
+            document.getElementById('resultContainer').innerHTML = "";
+            document.getElementById('kwankoAPIButtons').style.display = "block";
+            kwankoAuthorized = true;
+            console.log('kwanko/auth() success:', data);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
 async function exportOffers(){
     if(!validateInput()){
-        alert('In TradeTracker/exportOffers(): Invalid input!');
+        alert('In kwanko/exportOffers(): Invalid input!');
         return;
     }
     try {
@@ -113,16 +161,14 @@ async function exportOffers(){
         body: JSON.stringify({
             commands : [  
                 {
-                    commandName:"tradeTrackerOffers"
+                    commandName:"kwankoOffers"
                 },
                 {
-                    /* replace with tradetracker commands
-                    commandName:"getBrands",
-                    targetUrl:`https://app.partnerboost.com/api.php?mod=medium&op=monetization_api`,
-                    headers: { 'Content-Type': 'application/json',
-                        'accept':'application/json' },
-                    method:"POST",
-                    body:{user:document.getElementById('accountInput').value}*/
+                    commandName:"getCampaigns",
+                    targetUrl:`https://api.kwanko.com/publishers/campaigns`,
+                    headers: { 'Authorization':'Bearer '+kwankoToken},
+                    method:"GET",
+                    body:{}
                 }
             ]
             }),
@@ -131,17 +177,15 @@ async function exportOffers(){
 
         // First check if the HTTP request itself succeeded
         if (!response.ok) {
-            console.error("In TradeTracker/exportOffers(): received error response from server");
-            document.getElementById('resultTitle').innerHTML = "TradeTracker/exportOffers failed! Received response "+response.status;
+            console.error("In kwanko/exportOffers(): received error response from server");
+            document.getElementById('resultTitle').innerHTML = "kwanko/exportOffers failed! Received response "+response.status;
         }
         else{
             const data = await response.json();
             document.getElementById('resultTitle').innerHTML = "Export offers successful!";
-
-            document.getElementById('resultContainer').innerHTML = "Downloading tradeTrackerOffers.csv...";
-            downloadCSV(data.result,'tradeTrackerOffers.csv');
-                
-            console.log('TradeTracker/exportOffers() success:', data);
+            document.getElementById('resultContainer').innerHTML = "Downloading kwankoOffers.csv...";
+            downloadCSV(data.result,'kwankoOffers.csv');
+            console.log('kwanko/exportOffers() success:', data);
         }
     } catch (error) {
         console.error('Error:', error);
