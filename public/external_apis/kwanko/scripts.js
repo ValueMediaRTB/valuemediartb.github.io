@@ -120,18 +120,11 @@ async function kwankoAuth(){
         const response = await fetch(`${serverURL}/proxy` , {
         method: 'POST',
         body: JSON.stringify({
-            commands : [  
-                {
-                    commandName:"kwankoAuth"
-                },
-                {
-                    targetUrl:`https://api.kwanko.com`,
-                    headers: { 'Authorization': 'Bearer '+kwankoToken},
-                    method:"GET",
-                    body:{}
-                }
-            ]
-            }),
+            targetUrl:`https://api.kwanko.com`,
+            headers: { 'Authorization': 'Bearer '+kwankoToken},
+            method:"GET",
+            body:{}
+        }),
         headers: { 'Content-Type': 'application/json' }
         });
 
