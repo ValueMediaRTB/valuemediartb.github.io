@@ -8,6 +8,10 @@
     <button style="margin:8px"  onclick="window.location.href='/public/index.html'"> Home </button>
     <form id="tradeTrackerForm">
         <div style="display: grid; grid-template-columns: auto 1fr; align-items: center; margin:8px; gap: 8px">
+            <label for="userSelect" style="grid-row:1">Select user</label>
+            <select style="grid-row: 1; width:250px;" id="userSelect" type="text" required>
+                <option value="trai" selected>Trai</option>
+            </select>
             <label for="serverURLInput" style="grid-row: 2;">Server URL:</label>
             <input style="width:250px; grid-row: 2;" id="serverURLInput" type="text" required>
         </div>
