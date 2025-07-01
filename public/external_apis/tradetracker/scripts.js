@@ -107,6 +107,7 @@ async function exportOffers(){
         return;
     }
     try {
+        const user = document.getElementById('userSelect').value;
         document.getElementById('resultTitle').innerHTML = "Sent exportOffers request to server, waiting for response...";
         const response = await fetch(`${serverURL}/export` , {
         method: 'POST',
@@ -115,7 +116,7 @@ async function exportOffers(){
                 {
                     commandName:"tradeTrackerOffers"
                 },
-                {
+                {   user: user
                     /* replace with tradetracker commands
                     commandName:"getBrands",
                     targetUrl:`https://app.partnerboost.com/api.php?mod=medium&op=monetization_api`,
