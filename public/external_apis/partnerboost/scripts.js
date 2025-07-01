@@ -119,8 +119,7 @@ async function exportOffers(){
                 },
                 {
                     commandName:"getBrands",
-                    //targetUrl:`https://app.partnerboost.com/api.php?mod=medium&op=monetization_api`,
-                    targetUrl:`https://app.partnerboost.com/api.php?mod=datafeed&op=list`,
+                    targetUrl:`https://app.partnerboost.com/api.php?mod=medium&op=monetization_api`,
                     headers: { 'Content-Type': 'application/json',
                         'accept':'application/json' },
                     method:"POST",
