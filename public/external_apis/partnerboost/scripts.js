@@ -1,7 +1,12 @@
 let serverURL;
 let accountID;
+let exportLoading;
 
 function partnerBoostIndexLoaded(){
+    if(exportLoading){
+        document.getElementById('partnerBoostExportBrandsBtn').disabled=true;
+        document.getElementById('partnerBoostExportProductsBtn').disabled=true;
+    }
     serverURL = sessionStorage.getItem('serverURL',serverURL);
     if(!serverURL || serverURL == "undefined"){}
     else{
@@ -102,7 +107,7 @@ function convertToCSV(data) {
     throw new Error('Unsupported data format. Expected: array of objects, array of strings, object with array values, or JSON string.');
 }
 
-async function exportOffers(){
+async function exportOffers(type){
     if(!validateInput()){
         alert('In partnerboost/exportOffers(): Invalid input!');
         return;
@@ -110,6 +115,10 @@ async function exportOffers(){
     
     try {
         document.getElementById('resultTitle').innerHTML = "Sent exportOffers request to server, waiting for response...";
+        document.getElementById('resultContainer').innerHTML = "";
+        exportLoading = true;
+        document.getElementById('partnerBoostExportBrandsBtn').disabled=true;
+        document.getElementById('partnerBoostExportProductsBtn').disabled=true;
         const response = await fetch(`${serverURL}/export` , {
         method: 'POST',
         body: JSON.stringify({
@@ -118,7 +127,7 @@ async function exportOffers(){
                     commandName:"partnerboostOffers"
                 },
                 {
-                    commandName:"getBrands",
+                    commandName:(type == 'brands' ? "getBrands" : (type == 'products') ? "getProducts" : ""),
                     targetUrl:`https://app.partnerboost.com/api.php?mod=medium&op=monetization_api`,
                     headers: { 'Content-Type': 'application/json',
                         'accept':'application/json' },
@@ -129,7 +138,9 @@ async function exportOffers(){
             }),
         headers: { 'Content-Type': 'application/json' }
         });
-
+        exportLoading = false;
+        document.getElementById('partnerBoostExportBrandsBtn').disabled=false;
+        document.getElementById('partnerBoostExportProductsBtn').disabled=false;
         // First check if the HTTP request itself succeeded
         if (!response.ok) {
             console.error("In PartnerBoost/exportOffers(): received error response from server");
