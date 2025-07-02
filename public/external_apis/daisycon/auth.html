@@ -18,10 +18,11 @@
         <div style="font-weight:bold; margin:8px;">Daisycon API functions</div>
         <div id="apiButtonsContainer" style="display:none;">
             <button style="margin:8px" type="button" id="exportOffersBtn" onclick="exportOffers()">Export Offers</button>
+            <button style="margin:8px" type="button" id="refreshAccessTokenBtn" onclick="subscribeAllPrograms()">Subscribe to all programs</button>
             <button style="margin:8px" type="button" id="getCampaignMaterialBtn" onclick="getPrograms()">Get Programs</button>
             <button style="margin:8px" type="button" id="getMaterialDeeplinksBtn" onclick="getMaterialDeeplinks()">Get Ads With Deeplinks</button>
             <button style="margin:8px" type="button" id="getProductsBtn" onclick="getProducts()">Get Products</button>
-            <button style="margin:8px" type="button" id="refreshAccessTokenBtn" onclick="subscribeProgram()">Subscribe to program</button>
+            <button style="margin:8px" type="button" id="refreshAccessTokenBtn" onclick="subscribeProgram()">Subscribe to specific program</button>
         </div>
     </form>
     <div id="configPanel" style="display: grid; grid-template-columns: max-content auto max-content auto; align-items: center; margin:8px;margin-bottom:16px; gap: 8px;justify-items:start;">
@@ -55,7 +56,7 @@
                 <option value="get" selected>GET</option>
                 <option value="post">POST</option>
             </select>
-            <button style="grid-row: 5;" type="button" id="manualReqBtn" onclick="sendManualRequest()">Send manual request</button>
+            <button style="grid-row: 5;margin-top:8px;" type="button" id="manualReqBtn" onclick="sendManualRequest()">Send manual request</button>
         </div>
     </div>
     <hr>

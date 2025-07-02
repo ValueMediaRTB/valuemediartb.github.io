@@ -568,7 +568,7 @@ async function exportOffers(){
 }
 async function subscribeProgram(){
     if(!access_token || access_token == "undefined"){
-        alert('In sendManualRequest(): Access token is missing!');
+        alert('In subscribeProgram(): Access token is missing!');
         return;
     }
     validateAPIInput(['mediaID','programID']);
@@ -600,6 +600,50 @@ async function subscribeProgram(){
             document.getElementById('resultContainer').innerHTML = JSON.stringify(data);
 
             console.log('subscribeProgram() success:', data);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+async function subscribeAllPrograms(){
+    if(!access_token || access_token == "undefined"){
+        alert('In subscribeAllPrograms(): Access token is missing!');
+        return;
+    }
+    try {
+        document.getElementById('resultTitle').innerHTML = "Sent subscribeAllPrograms request to server, waiting for response...";
+        document.getElementById('resultContainer').innerHTML = "";
+        const response = await fetch(`${serverURL}/update` , {
+        method: 'POST',
+        body: JSON.stringify({
+            commands: [
+                {
+                    commandName:"daisyconOffers"
+                },
+                {
+                    commandName:"subscribeAllPrograms",
+                    body: {"publisherID":publisherID},
+                    headers: { 'Content-Type': 'application/json',
+                        'accept': 'application/json',
+                        'Authorization':'Bearer '+access_token },
+                    method:"POST"
+                }
+            ]
+        }),
+        headers: { 'Content-Type': 'application/json' }
+        });
+
+        // First check if the HTTP request itself succeeded
+        if (!response.ok) {
+            console.error("In subscribeAllPrograms(): received error response from server");
+            document.getElementById('resultTitle').innerHTML = "subscribeAllPrograms failed! Received response "+response.status;
+        }
+        else{
+            const data = await response.json();
+            document.getElementById('resultTitle').innerHTML = "Subscribe to all programs successful!";
+            document.getElementById('resultContainer').innerHTML = JSON.stringify(data);
+
+            console.log('subscribeAllPrograms() success:', data);
         }
     } catch (error) {
         console.error('Error:', error);
@@ -645,7 +689,6 @@ async function sendManualRequest(){
             console.error("In sendManualRequest(): received error response from server");
             return false;
         }
-
         const data = await response.json();
         document.getElementById('resultTitle').innerHTML = "Send manual request successful!"
         document.getElementById('resultContainer').innerHTML = "Result in console"
