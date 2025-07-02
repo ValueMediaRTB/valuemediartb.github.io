@@ -637,7 +637,10 @@ async function subscribeAllPrograms(){
         if (!response.ok) {
             const errorData = await response.json();
             console.error("In subscribeAllPrograms(): received error response from server");
-            document.getElementById('resultTitle').innerHTML = "subscribeAllPrograms failed! Received response: "+"<div style=\"color:red\">"+JSON.stringify(errorData)+"</div>";
+            if(JSON.stringify(errorData).toLowerCase().includes("expired token")) 
+                document.getElementById('resultTitle').innerHTML = "<div style=\"color:red\">Token expired! Click refresh token button</div>"
+            else
+                document.getElementById('resultTitle').innerHTML = "subscribeAllPrograms failed! Received response: "+"<div style=\"color:red\">"+JSON.stringify(errorData)+"</div>";
         }
         else{
             const data = await response.json();
