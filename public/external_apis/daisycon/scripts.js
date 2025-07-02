@@ -618,7 +618,7 @@ async function subscribeAllPrograms(){
         body: JSON.stringify({
             commands: [
                 {
-                    commandName:"daisyconOffers"
+                    commandName:"daisyconUpdate"
                 },
                 {
                     commandName:"subscribeAllPrograms",
