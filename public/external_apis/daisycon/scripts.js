@@ -636,7 +636,7 @@ async function subscribeAllPrograms(){
         // First check if the HTTP request itself succeeded
         if (!response.ok) {
             console.error("In subscribeAllPrograms(): received error response from server");
-            document.getElementById('resultTitle').innerHTML = "subscribeAllPrograms failed! Received response "+response.status;
+            document.getElementById('resultTitle').innerHTML = "subscribeAllPrograms failed! Received response status "+response.status+", "+response.body;
         }
         else{
             const data = await response.json();
