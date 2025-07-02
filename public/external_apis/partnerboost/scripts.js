@@ -115,7 +115,7 @@ async function exportOffers(type){
     
     try {
         document.getElementById('resultTitle').innerHTML = "Sent exportOffers request to server, waiting for response...";
-        document.getElementById('resultContainer').innerHTML = "";
+        document.getElementById('resultContainer').innerHTML = "This may take a few minutes.";
         exportLoading = true;
         document.getElementById('partnerBoostExportBrandsBtn').disabled=true;
         document.getElementById('partnerBoostExportProductsBtn').disabled=true;
