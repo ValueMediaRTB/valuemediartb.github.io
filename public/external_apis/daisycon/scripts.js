@@ -335,14 +335,14 @@ function validateAPIInput(required){
     mediaID = document.getElementById('mediaIDInput').value || 0;
     mediaIDParam = ( mediaID != 0 ? "media_id=${mediaID}&" : "");
     programID = document.getElementById('programIDInput').value || 0;
-    if(required.includes('mediaID') && mediaID == 0){
+    if(required && required.includes('mediaID') && mediaID == 0){
         document.getElementById('mediaIDrequired').innerHTML = 'Please select a media ID (all is invalid).';
         valid = false;
     }
     else{
         document.getElementById('mediaIDrequired').innerHTML = '';
     }
-    if(required.includes('programID') && programID == 0){
+    if(required && required.includes('programID') && programID == 0){
         document.getElementById('programIDrequired').innerHTML = 'Program ID is required!';
         valid = false;
     }
