@@ -86,6 +86,18 @@ function convertToCSV(data) {
     throw new Error('Unsupported data format. Expected: array of objects, array of strings, object with array values, or JSON string.');
 }
 
+function downloadTextFile(text, filename) {
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    
+    URL.revokeObjectURL(url); // Clean up
+}
+
 function generateRandomString(length) {
 	let randomString = '';
 	let allowedChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -608,7 +620,7 @@ async function subscribeAllPrograms(){
     }
     try {
         document.getElementById('resultTitle').innerHTML = "Sent subscribeAllPrograms request to server, waiting for response...";
-        document.getElementById('resultContainer').innerHTML = "";
+        document.getElementById('resultContainer').innerHTML = "This may take a few minutes.";
         const response = await fetch(`${serverURL}/update` , {
         method: 'POST',
         body: JSON.stringify({
@@ -642,8 +654,8 @@ async function subscribeAllPrograms(){
             const data = await response.json();
             document.getElementById('resultTitle').innerHTML = "Subscribe to all programs successful!";
             document.getElementById('resultContainer').innerHTML = JSON.stringify(data);
-
-            console.log('subscribeAllPrograms() success:', data);
+            downloadTextFile(data.result.join("\n"),"daisycon_subscribe_all_programs_logs.txt");
+            console.log('subscribeAllPrograms() success. Downloading logs...');
         }
     } catch (error) {
         console.error('Error:', error);

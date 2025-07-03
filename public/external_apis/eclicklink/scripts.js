@@ -1,8 +1,7 @@
 let serverURL;
 let accountID;
-let authorized = false;
 
-function convertSocialIndexLoaded(){
+function eclicklinkIndexLoaded(){
    serverURL = sessionStorage.getItem('serverURL',serverURL);
     if(!serverURL || serverURL == "undefined"){}
     else{
@@ -102,61 +101,23 @@ function convertToCSV(data) {
     throw new Error('Unsupported data format. Expected: array of objects, array of strings, object with array values, or JSON string.');
 }
 
-async function convertSocialAuth(){
-    try {
-        const token = document.getElementById('convertSocialTokenInput').value;
-        document.getElementById('resultTitle').innerHTML = "Sent authorize request to server, waiting for response...";
-        const response = await fetch(`${serverURL}/export` , {
-        method: 'POST',
-        body: JSON.stringify({
-            commands : [  
-                {
-                    commandName:"convertSocialOffers"
-                },
-                {
-                    targetUrl:`https://api.convertsocial.net/v1/public/website`,
-                    headers: { 'Authorization': 'Bearer ',
-                        'accept':'application/json' },
-                    method:"GET",
-                    body:{user:document.getElementById('userSelect').value}
-                }
-            ]
-            }),
-        headers: { 'Content-Type': 'application/json' }
-        });
-
-        // First check if the HTTP request itself succeeded
-        if (!response.ok) {
-            console.error("In convertSocial/exportOffers(): received error response from server");
-            document.getElementById('resultTitle').innerHTML = "convertSocial/exportOffers failed! Received response "+response.status;
-        }
-        else{
-            const data = await response.json();
-            document.getElementById('resultTitle').innerHTML = "convertSocial/exportOffers successful!";
-            document.getElementById('resultContainer').innerHTML = "Downloading convertSocialOffers.csv...";
-            console.log('convertSocial/auth() success:', data);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
-
 async function exportOffers(){
     if(!validateInput()){
-        alert('In convertSocial/exportOffers(): Invalid input!');
+        alert('In eclicklink/exportOffers(): Invalid input!');
         return;
     }
     try {
+        const user = document.getElementById('userSelect').value;
         document.getElementById('resultTitle').innerHTML = "Sent exportOffers request to server, waiting for response...";
         const response = await fetch(`${serverURL}/export` , {
         method: 'POST',
         body: JSON.stringify({
             commands : [  
                 {
-                    commandName:"convertSocialOffers"
+                    commandName:"eclicklinkOffers"
                 },
-                {
-                    /* replace with tradetracker commands
+                {   user: user
+                    /* replace with eclicklink commands
                     commandName:"getBrands",
                     targetUrl:`https://app.partnerboost.com/api.php?mod=medium&op=monetization_api`,
                     headers: { 'Content-Type': 'application/json',
@@ -171,17 +132,17 @@ async function exportOffers(){
 
         // First check if the HTTP request itself succeeded
         if (!response.ok) {
-            console.error("In convertSocial/exportOffers(): received error response from server");
-            document.getElementById('resultTitle').innerHTML = "convertSocial/exportOffers failed! Received response "+response.status;
+            console.error("In eclicklink/exportOffers(): received error response from server");
+            document.getElementById('resultTitle').innerHTML = "eclicklink/exportOffers failed! Received response "+response.status;
         }
         else{
             const data = await response.json();
             document.getElementById('resultTitle').innerHTML = "Export offers successful!";
 
-            document.getElementById('resultContainer').innerHTML = "Downloading convertSocial.csv...";
-            downloadCSV(data.result,'convertSocial.csv');
+            document.getElementById('resultContainer').innerHTML = "Downloading eclicklinkOffers.csv...";
+            downloadCSV(data.result,'eclicklinkOffers.csv');
                 
-            console.log('convertSocial/exportOffers() success:', data);
+            console.log('eclicklink/exportOffers() success:', data);
         }
     } catch (error) {
         console.error('Error:', error);
