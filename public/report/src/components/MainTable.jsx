@@ -26,7 +26,7 @@ const MainTable = ({
     return data.filter(row => {
       return clientFilters.every(filter => {
         const value = row[filter.type];
-        const filterValue = filter.value.toLowerCase().trim();
+        const filterValue = filter.value?.toString().toLowerCase().trim();
         const operator = filter.operator || '=';
         
         if (!filterValue) return true; // Skip empty filters
@@ -43,16 +43,16 @@ const MainTable = ({
               return value > numericFilterValue;
             case '=':
             default:
-              return value === numericFilterValue;
+              return Math.abs(value - numericFilterValue) < 0.000001; // Handle floating point comparison
           }
         }
         
         // Handle string filtering (contains match, case insensitive)
-        const stringValue = String(value).toLowerCase();
+        const stringValue = String(value || '').toLowerCase();
         
         // For traffic_source-like filters that might have comma-separated values
         if (filterValue.includes(',')) {
-          const filterValues = filterValue.split(',').map(v => v.trim());
+          const filterValues = filterValue.split(',').map(v => v.trim()).filter(v => v);
           return filterValues.some(fv => stringValue.includes(fv));
         }
         
@@ -76,8 +76,8 @@ const MainTable = ({
       }
 
       return sortConfig.direction === 'asc'
-        ? String(aValue).localeCompare(String(bValue))
-        : String(bValue).localeCompare(String(aValue));
+        ? String(aValue || '').localeCompare(String(bValue || ''))
+        : String(bValue || '').localeCompare(String(aValue || ''));
     });
   }, [filteredData, sortConfig]);
 
@@ -141,8 +141,11 @@ const MainTable = ({
 
   const formatCellValue = (value, key) => {
     if (typeof value === 'number') {
-      if (['cost', 'profit', 'revenue', 'cpc', 'epc','cr'].includes(key)) {
+      if (['cost', 'profit', 'revenue', 'cpc', 'epc'].includes(key)) {
         return `$${value.toFixed(7)}`;
+      }
+      if (['cr'].includes(key)) {
+        return `${(value * 100).toFixed(2)}%`;
       }
       if (['roi'].includes(key)) {
         return `${value.toFixed(2)}%`;
@@ -216,6 +219,11 @@ const MainTable = ({
     
     return items;
   };
+
+  // Reset to first page when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   if (isLoading) {
     return (

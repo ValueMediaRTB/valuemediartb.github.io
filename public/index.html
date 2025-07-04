@@ -4,18 +4,229 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Value Media</title>
-    <h3 style="margin:8px;">Welcome to ValueMedia Traffic Tools</h3>
-    <div style="display: block;">
-        <button style="margin:8px" onclick="window.location.href='http:\/\/localhost:3001/report/'"> Reporting </button>
-        <button style="margin:8px"> Campaigns </button>
-        <button style="margin:8px" onclick="window.location.href='/public/external_apis/index.html'"> External APIs </button>
+    <style>
+        /* Loading screen styles */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10000;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Main content styles */
+        .main-content {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .main-content.visible {
+            opacity: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .user-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 4px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="spinner"></div>
+        <div>Verifying authentication...</div>
     </div>
-    <script src="scripts.js" defer></script>
+
+    <!-- User Info Display -->
+    <div id="userInfo" class="user-info" style="display: none;">
+        Welcome, <span class="auth-username">User</span>
+        <button class="logout-btn auth-logout">Logout</button>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="main-content">
+        <div class="header">
+            <h3 style="margin: 8px;">Welcome to ValueMedia Traffic Tools</h3>
+        </div>
+        
+        <div class="nav-buttons">
+            <a href="http://localhost:3001/report/" class="nav-button" id="reportingBtn">
+                📊 Reporting
+            </a>
+            <button class="nav-button" id="campaignsBtn" disabled>
+                🚀 Campaigns
+            </button>
+            <a href="/public/external_apis/index.html" class="nav-button" id="externalApisBtn">
+                🔗 External APIs
+            </a>
+        </div>
+    </div>
+
+    <!-- Include Authentication Modal -->
     <script>
+        // Load auth modal HTML
+        fetch('/public/components/auth-modal.html')
+            .then(response => response.text())
+            .then(html => {
+                document.body.insertAdjacentHTML('beforeend', html);
+            })
+            .catch(error => {
+                console.error('Error loading auth modal:', error);
+                // Fallback: create basic modal
+                document.body.insertAdjacentHTML('beforeend', `
+                    <div id="authModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
+                        <div style="position: relative; margin: 15% auto; padding: 20px; width: 300px; background: white; border-radius: 8px;">
+                            <h3>Login Required</h3>
+                            <form id="authForm">
+                                <input type="text" id="authUsername" placeholder="Username" required style="width: 100%; margin: 10px 0; padding: 8px;">
+                                <input type="password" id="authPassword" placeholder="Password" required style="width: 100%; margin: 10px 0; padding: 8px;">
+                                <button type="submit" id="authSubmit" style="width: 100%; padding: 10px; background: #007bff; color: white; border: none;">Login</button>
+                            </form>
+                            <div id="authError" style="display: none; color: red; margin-top: 10px;"></div>
+                        </div>
+                    </div>
+                `);
+            })
+            .finally(() => {
+                // Initialize auth service after modal is loaded
+                loadAuthService();
+            });
+
+        function loadAuthService() {
+            // Load auth service
+            const script = document.createElement('script');
+            script.src = '/public/js/authService.js';
+            script.onload = function() {
+                initializePage();
+            };
+            document.head.appendChild(script);
+        }
+
+        async function initializePage() {
+            try {
+                // Check authentication
+                const isAuthenticated = await window.authService.checkAuthOnLoad();
+                
+                if (isAuthenticated) {
+                    // Show main content
+                    document.getElementById('userInfo').style.display = 'block';
+                    document.getElementById('mainContent').classList.add('visible');
+                } else {
+                    // Hide main content, show login modal
+                    document.getElementById('mainContent').classList.remove('visible');
+                }
+            } catch (error) {
+                console.error('Authentication check failed:', error);
+                window.authService.showLoginModal();
+            } finally {
+                // Hide loading screen
+                document.getElementById('loadingScreen').classList.add('hidden');
+            }
+        }
+
+        // Traditional function for compatibility
+        function indexLoaded() {
+            console.log('Index loaded');
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
             indexLoaded();
         });
     </script>
+    
+    <script src="scripts.js" defer></script>
 </body>
-
 </html>

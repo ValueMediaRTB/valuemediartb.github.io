@@ -5,7 +5,7 @@ import { fetchTableData } from '../api';
 
 const DEFAULT_TAB_OPTIONS = ['Campaigns', 'Zones', 'SubIDs', 'Countries', 'ISPs'];
 
-const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
+const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate }) => {
   const [pageSize, setPageSize] = useState(50);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc'});
@@ -142,32 +142,42 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters }) => {
   };
 
   // Dynamic columns based on active tab
-const columns = useMemo(() => {
-  // Handle custom groups as before
-  const customGroup = customGroups.find(group => group.name === activeTab);
-  if (tableData.length > 0) {
-    // Dynamic columns based on first row of data
-    const firstRow = tableData[0];
-    let headers = Object.keys(firstRow).map(key => ({
-      key,
-      label: key.charAt(0).toUpperCase() + key.slice(1), // basic label formatting
-      sortable: true,
-      numeric: typeof firstRow[key] === 'number'
-    }));
-    headers = headers.filter(header => header.key != 'date');
-    if (customGroup) {
-      headers = headers.filter(header => header.key != 'primary_type' && header.key != 'secondary_type' && header.key != 'primary_value' && header.key != 'secondary_value');
+  const columns = useMemo(() => {
+    // Handle custom groups as before
+    const customGroup = customGroups.find(group => group.name === activeTab);
+    if (tableData.length > 0) {
+      // Dynamic columns based on first row of data
+      const firstRow = tableData[0];
+      let headers = Object.keys(firstRow).map(key => ({
+        key,
+        label: key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' '), // Better label formatting
+        sortable: true,
+        numeric: typeof firstRow[key] === 'number'
+      }));
+      headers = headers.filter(header => header.key !== 'date');
+      if (customGroup) {
+        headers = headers.filter(header => 
+          header.key !== 'primary_type' && 
+          header.key !== 'secondary_type' && 
+          header.key !== 'primary_value' && 
+          header.key !== 'secondary_value'
+        );
+      }
+      
+      // Update available columns for the DateRangeSelector
+      if (onColumnsUpdate) {
+        onColumnsUpdate(headers);
+      }
+      
+      return headers;
     }
-    //not a group tab
-    return headers;
-  }
 
-  // Fallback: show minimal if no data yet
-  return [
-    { key: 'id', label: 'ID', sortable: true },
-    { key: 'name', label: 'Name', sortable: true }
-  ];
-}, [activeTab, customGroups, tableData]);
+    // Fallback: show minimal if no data yet
+    return [
+      { key: 'id', label: 'ID', sortable: true },
+      { key: 'name', label: 'Name', sortable: true }
+    ];
+  }, [activeTab, customGroups, tableData, onColumnsUpdate]);
 
   return (
     <div className="px-3" style={{ position: 'relative' }}>
@@ -200,14 +210,14 @@ const columns = useMemo(() => {
               >
                 <span>{group.name}</span>
                 <Button 
-                  variant="link" 
-                  className="text-danger p-0 ms-1"
+                  className="text-danger p-0"
                   onClick={(e) => handleDeleteGroup(group.name, e)}
                   style={{ 
                     fontSize: '1.2rem',
-                    lineHeight: '1',
+                    lineHeight: '1.2',
                     minWidth: 'auto',
-                    height: 'auto',
+                    height: '20px',
+                    transform:'translateY(-2px)',
                     border: 'none',
                     background: 'none'
                   }}
@@ -241,6 +251,7 @@ const columns = useMemo(() => {
             initialPageSize={pageSize}
             isLoading={isLoading}
             totals={totals}
+            filters={filters}
             stickyHeader
             stickyPagination
           />

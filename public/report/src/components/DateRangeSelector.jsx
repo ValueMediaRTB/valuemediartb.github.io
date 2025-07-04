@@ -3,28 +3,30 @@ import DatePicker from 'react-datepicker';
 import { Button, Form, Dropdown } from 'react-bootstrap';
 import 'react-datepicker/dist/react-datepicker.css';
 
-const defaultFilterOptions = [
-  'Traffic Source',
-  'Clicks', 
-  'Conversions',
-  'Cost',
-  'Profit',
-  'CPC',
-  'EPC', 
-  'CR',
-  'ROI'
+// Mandatory filter options that should always be available
+const mandatoryFilterOptions = [
+  { key: 'traffic_source', label: 'Traffic Source' },
+  { key: 'clicks', label: 'Clicks' },
+  { key: 'conversions', label: 'Conversions' },
+  { key: 'cost', label: 'Cost' },
+  { key: 'profit', label: 'Profit' },
+  { key: 'revenue', label: 'Revenue' },
+  { key: 'cpc', label: 'CPC' },
+  { key: 'epc', label: 'EPC' },
+  { key: 'cr', label: 'CR' },
+  { key: 'roi', label: 'ROI' }
 ];
 
 const numericFilters = [
-  'Clicks',
-  'Conversions',
-  'Cost',
-  'Profit',
-  'Revenue',
-  'CPC',
-  'EPC',
-  'CR',
-  'ROI'
+  'clicks',
+  'conversions',
+  'cost',
+  'profit',
+  'revenue',
+  'cpc',
+  'epc',
+  'cr',
+  'roi'
 ];
 
 const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, availableColumns = [] }) => {
@@ -58,8 +60,11 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
   const handleRemoveFilter = (filterToRemove) => {
     setSelectedFilters(selectedFilters.filter(f => f !== filterToRemove));
     const newFilterValues = { ...filterValues };
+    const newFilterOperators = { ...filterOperators };
     delete newFilterValues[filterToRemove];
+    delete newFilterOperators[filterToRemove];
     setFilterValues(newFilterValues);
+    setFilterOperators(newFilterOperators);
   };
 
   const handleFilterValueChange = (filter, value) => {
@@ -73,28 +78,20 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
     return date1.getTime() === date2.getTime();
   };
 
-  // Generate filter options based on available columns
+  // Generate filter options based on mandatory filters + available columns
   const getFilterOptions = () => {
-    // Convert default filter names to keys for comparison
-    const defaultFilterKeys = defaultFilterOptions.map(filter => 
-      filter.toLowerCase().replace(/\s+/g, '_')
-    );
-
-    // Get tab-specific columns that aren't in the default list
-    const tabSpecificColumns = availableColumns
-      .filter(col => !defaultFilterKeys.includes(col.key))
+    // Start with mandatory filters
+    const mandatoryKeys = mandatoryFilterOptions.map(filter => filter.key);
+    
+    // Get unique columns that aren't already in mandatory list
+    const uniqueColumns = availableColumns
+      .filter(col => !mandatoryKeys.includes(col.key))
       .map(col => ({
         key: col.key,
         label: col.label || col.key.charAt(0).toUpperCase() + col.key.slice(1).replace(/_/g, ' ')
       }));
 
-    // Create default options with proper keys
-    const defaultOptions = defaultFilterOptions.map(filter => ({
-      key: filter.toLowerCase().replace(/\s+/g, '_'),
-      label: filter
-    }));
-
-    return [...defaultOptions, ...tabSpecificColumns];
+    return [...mandatoryFilterOptions, ...uniqueColumns];
   };
 
   const filterOptions = getFilterOptions();
@@ -129,7 +126,7 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
       <div className="d-flex align-items-end gap-2 flex-wrap">
         {/* Date Picker with slightly increased width */}
         <div style={{ minWidth: '250px', display: 'grid' }}>
-          <div class={"form-label"} style={{ fontSize: '0.9rem', marginBottom: '2px', marginTop: '4px' }}>
+          <div className={"form-label"} style={{ fontSize: '0.9rem', marginBottom: '2px', marginTop: '4px' }}>
             {"Date"}
           </div>
           <DatePicker
@@ -205,7 +202,7 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
                     {filterLabel}
                   </Form.Label>
                   <div className="d-flex align-items-center">
-                    {numericFilters.includes(filterLabel) && (
+                    {numericFilters.includes(filter) && (
                       <Form.Select
                         value={filterOperators[filter] || '='}
                         onChange={(e) => handleOperatorChange(filter, e.target.value)}

@@ -1,3 +1,4 @@
+// /public/external_apis/daisycon/scripts.js - Updated with authentication
 window.authorizeDaisycon = authorizeDaisycon;
 
 function downloadCSV(data, filename = 'data.csv') {
@@ -140,6 +141,7 @@ async function initializeCodes() {
       codeChallenge = await generateCodeChallenge(codeVerifier);
       sessionStorage.setItem('codeChallenge', codeChallenge);
 }
+
 async function daisyconIndexLoaded() {
     await initializeCodes();
 
@@ -162,6 +164,7 @@ async function daisyconIndexLoaded() {
     
     console.log("indexLoaded() called")
 }
+
 async function daisyconAuthLoaded(){
     console.log("authLoaded() called") //////////// ///// //
     codeVerifier = sessionStorage.getItem('codeVerifier');
@@ -240,10 +243,9 @@ function authorizeDaisycon(){
     authorizeUrl.searchParams.append('code_challenge',codeChallenge);
 
     location.replace(authorizeUrl.toString())
-
 }; 
-async function accessDaisycon(){
 
+async function accessDaisycon(){
     // Validate inputs
     if (!token || token == "undefined") {
         alert('Token is missing!');
@@ -263,9 +265,9 @@ async function accessDaisycon(){
         'code_verifier':codeVerifier
     }
     try {
-        const response = await fetch(`${serverURL}/proxy` , {
+        // Use authenticated request instead of direct fetch
+        const response = await window.authService.makeAuthenticatedRequest(`${serverURL}/proxy`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             targetUrl: accessUrl,
             body: formData,
@@ -292,10 +294,13 @@ async function accessDaisycon(){
         console.log('Success:', data);
       } catch (error) {
         console.error('Error:', error);
+        if (error.message === 'Authentication required') {
+            window.authService.showNotification('Please login to continue', 'error');
+        }
       }
 }
-async function refreshAccessDaisycon(){
 
+async function refreshAccessDaisycon(){
     // Validate inputs
     if (!refresh_token || refresh_token == "undefined") {
         alert('Refresh token is missing!');
@@ -310,9 +315,9 @@ async function refreshAccessDaisycon(){
         'redirect_uri':redirectURI
     }
     try {
-        const response = await fetch(`${serverURL}/proxy` , {
+        // Use authenticated request
+        const response = await window.authService.makeAuthenticatedRequest(`${serverURL}/proxy`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             targetUrl: accessUrl,
             body: formData,
@@ -337,6 +342,9 @@ async function refreshAccessDaisycon(){
         console.log('Success:', data);
       } catch (error) {
         console.error('Error:', error);
+        if (error.message === 'Authentication required') {
+            window.authService.showNotification('Please login to continue', 'error');
+        }
       }
 }
 
@@ -371,16 +379,15 @@ async function getCampaignMaterial(){
     }
     try {
         validateAPIInput();
-        const response = await fetch(`${serverURL}/proxy` , {
+        // Use authenticated request
+        const response = await window.authService.makeAuthenticatedRequest(`${serverURL}/proxy`, {
         method: 'POST',
         body: JSON.stringify({
             targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/programs?page=${pageNr}&per_page=${pageSize}`,
             headers: { 'accept': 'application/json',
             'Authorization':'Bearer '+access_token },
             method:"GET"
-            //,writeToFile: 1 use this in production mode
-            }),
-        headers: { 'Content-Type': 'application/json' }
+            })
         });
     
         const data = await response.json();
@@ -391,6 +398,9 @@ async function getCampaignMaterial(){
         console.log('Success:', data);
     } catch (error) {
         console.error('Error:', error);
+        if (error.message === 'Authentication required') {
+            window.authService.showNotification('Please login to continue', 'error');
+        }
     }
 }
 
@@ -401,19 +411,17 @@ async function getPrograms(){
     }
     try {
         validateAPIInput();
-        const response = await fetch(`${serverURL}/proxy` , {
+        // Use authenticated request
+        const response = await window.authService.makeAuthenticatedRequest(`${serverURL}/proxy`, {
         method: 'POST',
         body: JSON.stringify({
             targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs?${mediaIDParam}order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
             headers: { 'accept': 'application/json',
             'Authorization':'Bearer '+access_token },
             method:"GET"
-            ////,writeToFile: 1 use this in production mode
-            }),
-        headers: { 'Content-Type': 'application/json' }
+            })
         });
     
-
         const data = await response.json();
         // Handle the response (e.g., save access token)
         document.getElementById('resultTitle').innerHTML = "Get campaign material successful!"
@@ -422,27 +430,30 @@ async function getPrograms(){
         console.log('Success:', data);
     } catch (error) {
         console.error('Error:', error);
+        if (error.message === 'Authentication required') {
+            window.authService.showNotification('Please login to continue', 'error');
+        }
     }
-    
 }
+
 async function getMaterialDeeplinks(){
     if(!access_token || access_token == "undefined"){
         alert('In getPrograms(): Access token is missing!');
         return;
-    }//// //// ///
+    }
     try {
         validateAPIInput();
         document.getElementById('resultTitle').innerHTML = "Sent getMaterialDeeplinks request to server, waiting for response...";
         document.getElementById('resultContainer').innerHTML = "";
-        const response = await fetch(`${serverURL}/proxy` , {
+        // Use authenticated request
+        const response = await window.authService.makeAuthenticatedRequest(`${serverURL}/proxy`, {
         method: 'POST',
         body: JSON.stringify({
             targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/deeplinks?${mediaIDParam}order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
             headers: { 'accept': 'application/json',
             'Authorization':'Bearer '+access_token },
             method:"GET"
-            }),
-        headers: { 'Content-Type': 'application/json' }
+            })
         });
     
         const data = await response.json();
@@ -455,9 +466,12 @@ async function getMaterialDeeplinks(){
         document.getElementById('resultTitle').innerHTML = "Received error response for getMaterialDeeplinks";
         document.getElementById('resultContainer').innerHTML = "";
         console.error('Error:', error);
+        if (error.message === 'Authentication required') {
+            window.authService.showNotification('Please login to continue', 'error');
+        }
     }
-    
 }
+
 async function getProducts(){
     if(!access_token || access_token == "undefined"){
         alert('In getProducts(): Access token is missing!');
@@ -465,19 +479,17 @@ async function getProducts(){
     }
     try {
         validateAPIInput();
-        const response = await fetch(`${serverURL}/proxy` , {
+        // Use authenticated request
+        const response = await window.authService.makeAuthenticatedRequest(`${serverURL}/proxy`, {
         method: 'POST',
         body: JSON.stringify({
             targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/product-feeds/products?language_code=en&order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
             headers: { 'accept': 'application/json',
             'Authorization':'Bearer '+access_token },
             method:"GET"
-            ////,writeToFile: 1 use this in production mode
-            }),
-        headers: { 'Content-Type': 'application/json' }
+            })
         });
     
-
         const data = await response.json();
         // Handle the response (e.g., save access token)
         document.getElementById('resultTitle').innerHTML = "Get products successful!"
@@ -486,9 +498,12 @@ async function getProducts(){
         console.log('Success:', data);
     } catch (error) {
         console.error('Error:', error);
+        if (error.message === 'Authentication required') {
+            window.authService.showNotification('Please login to continue', 'error');
+        }
     }
-    
 }
+
 async function getMedias(){
     if(!access_token || access_token == "undefined"){
         alert('In getMedias(): Access token is missing!');
