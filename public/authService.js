@@ -424,4 +424,4 @@ class AuthService {
 }
 
 // Create singleton instance
-window.authService = new PublicAuthService();
+window.authService = new AuthService();
