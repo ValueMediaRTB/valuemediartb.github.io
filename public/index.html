@@ -16,15 +16,15 @@
             <h3 style="margin: 8px;">Welcome to ValueMedia Traffic Tools</h3>
         </div>
         <div class="nav-buttons">
-            <a href="http://localhost:3001/report/" class="nav-button" id="reportingBtn">
-                📊 Reporting
-            </a>
-            <button class="nav-button" id="campaignsBtn" disabled>
-                🚀 Campaigns
-            </button>
-            <a href="/public/external_apis/index.html" class="nav-button" id="externalApisBtn">
-                🔗 External APIs
-            </a>
+            <form action="http://localhost:3001/report/">
+                <input type = "submit" value = "Reporting"/>
+            </form>
+            <form>
+                <input type = "submit" value = "Campaigns"/>
+            </form>
+            <form action="/public/external_apis/index.html">
+                <input type="submit" value = "External APIs"/>
+            </form>
         </div>
     </div>
     <script src="scripts.js" defer></script>
