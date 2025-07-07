@@ -265,8 +265,7 @@ async function accessDaisycon(){
         'code_verifier':codeVerifier
     }
     try {
-        // Use authenticated request instead of direct fetch
-        const response = await window.authService.makeAuthenticatedRequest(`${serverURL}/proxy`, {
+        const response = await fetch(`${serverURL}/proxy`, {
           method: 'POST',
           body: JSON.stringify({
             targetUrl: accessUrl,
@@ -294,9 +293,6 @@ async function accessDaisycon(){
         console.log('Success:', data);
       } catch (error) {
         console.error('Error:', error);
-        if (error.message === 'Authentication required') {
-            window.authService.showNotification('Please login to continue', 'error');
-        }
       }
 }
 
@@ -315,8 +311,7 @@ async function refreshAccessDaisycon(){
         'redirect_uri':redirectURI
     }
     try {
-        // Use authenticated request
-        const response = await window.authService.makeAuthenticatedRequest(`${serverURL}/proxy`, {
+        const response = await fetch(`${serverURL}/proxy`, {
           method: 'POST',
           body: JSON.stringify({
             targetUrl: accessUrl,
@@ -342,9 +337,6 @@ async function refreshAccessDaisycon(){
         console.log('Success:', data);
       } catch (error) {
         console.error('Error:', error);
-        if (error.message === 'Authentication required') {
-            window.authService.showNotification('Please login to continue', 'error');
-        }
       }
 }
 
@@ -379,8 +371,7 @@ async function getCampaignMaterial(){
     }
     try {
         validateAPIInput();
-        // Use authenticated request
-        const response = await window.authService.makeAuthenticatedRequest(`${serverURL}/proxy`, {
+        const response = await fetch(`${serverURL}/proxy`, {
         method: 'POST',
         body: JSON.stringify({
             targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/programs?page=${pageNr}&per_page=${pageSize}`,
@@ -398,9 +389,6 @@ async function getCampaignMaterial(){
         console.log('Success:', data);
     } catch (error) {
         console.error('Error:', error);
-        if (error.message === 'Authentication required') {
-            window.authService.showNotification('Please login to continue', 'error');
-        }
     }
 }
 
@@ -411,8 +399,7 @@ async function getPrograms(){
     }
     try {
         validateAPIInput();
-        // Use authenticated request
-        const response = await window.authService.makeAuthenticatedRequest(`${serverURL}/proxy`, {
+        const response = await fetch(`${serverURL}/proxy`, {
         method: 'POST',
         body: JSON.stringify({
             targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs?${mediaIDParam}order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
@@ -430,9 +417,6 @@ async function getPrograms(){
         console.log('Success:', data);
     } catch (error) {
         console.error('Error:', error);
-        if (error.message === 'Authentication required') {
-            window.authService.showNotification('Please login to continue', 'error');
-        }
     }
 }
 
@@ -445,8 +429,7 @@ async function getMaterialDeeplinks(){
         validateAPIInput();
         document.getElementById('resultTitle').innerHTML = "Sent getMaterialDeeplinks request to server, waiting for response...";
         document.getElementById('resultContainer').innerHTML = "";
-        // Use authenticated request
-        const response = await window.authService.makeAuthenticatedRequest(`${serverURL}/proxy`, {
+        const response = await fetch(`${serverURL}/proxy`, {
         method: 'POST',
         body: JSON.stringify({
             targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/deeplinks?${mediaIDParam}order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
@@ -466,9 +449,6 @@ async function getMaterialDeeplinks(){
         document.getElementById('resultTitle').innerHTML = "Received error response for getMaterialDeeplinks";
         document.getElementById('resultContainer').innerHTML = "";
         console.error('Error:', error);
-        if (error.message === 'Authentication required') {
-            window.authService.showNotification('Please login to continue', 'error');
-        }
     }
 }
 
@@ -479,8 +459,7 @@ async function getProducts(){
     }
     try {
         validateAPIInput();
-        // Use authenticated request
-        const response = await window.authService.makeAuthenticatedRequest(`${serverURL}/proxy`, {
+        const response = await fetch(`${serverURL}/proxy`, {
         method: 'POST',
         body: JSON.stringify({
             targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/product-feeds/products?language_code=en&order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
@@ -498,9 +477,6 @@ async function getProducts(){
         console.log('Success:', data);
     } catch (error) {
         console.error('Error:', error);
-        if (error.message === 'Authentication required') {
-            window.authService.showNotification('Please login to continue', 'error');
-        }
     }
 }
 
