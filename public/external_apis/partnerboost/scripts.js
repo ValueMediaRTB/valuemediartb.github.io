@@ -150,19 +150,13 @@ async function exportOffers(type){
             const data = await response.json();
             document.getElementById('resultTitle').innerHTML = "Export offers successful!";
 
-            switch(accountID){
-                case "1":
-                    document.getElementById('resultContainer').innerHTML = "Downloading partnerboostOffers_allusers.csv...";
-                    downloadCSV(data.result,'partnerboostOffers_allusers.csv');
-                    break;
-                case "508487":
-                    document.getElementById('resultContainer').innerHTML = "Downloading partnerboostOffers_alphaads.csv...";
-                    downloadCSV(data.result,'partnerboostOffers_alphaads.csv');
-                    break;
-                case "508489":
-                    document.getElementById('resultContainer').innerHTML = "Downloading partnerboostOffers_netcraft.csv...";
-                    downloadCSV(data.result,'partnerboostOffers_netcraft.csv');
-                    break;
+            if(accountID == 1){
+                document.getElementById('resultContainer').innerHTML = "Downloading partnerboostOffers_allusers.csv...";
+                downloadCSV(data.result,'partnerboostOffers_allusers.csv');
+            }
+            else{
+                document.getElementById('resultContainer').innerHTML = "Downloading partnerboostOffers_"+document.getElementById('accountInput').value+".csv...";
+                downloadCSV(data.result,'partnerboostOffers_'+document.getElementById('accountInput').value+'.csv');
             }
             console.log('PartnerBoost/exportOffers() success:', data);
         }
