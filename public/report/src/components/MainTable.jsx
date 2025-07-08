@@ -145,7 +145,7 @@ const MainTable = ({
         return `$${value.toFixed(7)}`;
       }
       if (['cr'].includes(key)) {
-        return `${(value * 100).toFixed(2)}%`;
+        return `${value.toFixed(7)}`;
       }
       if (['roi'].includes(key)) {
         return `${value.toFixed(2)}%`;
