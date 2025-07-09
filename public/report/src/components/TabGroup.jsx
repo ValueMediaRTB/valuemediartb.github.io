@@ -15,14 +15,16 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
   });
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [tableData, setTableData] = useState([]);
+  const [serverTotals, setServerTotals] = useState(null); // State for server totals
   const [isLoading, setIsLoading] = useState(false);
   const [newGroup, setNewGroup] = useState({
     option1: 'None',
     option2: 'None'
   });
 
-  // Calculate totals and averages
-  const totals = useMemo(() => {
+  // Calculate totals and averages if not received from server
+  /*
+  const clientTotals = useMemo(() => {
     if (!tableData.length) return null;
     
     const numericColumns = ['clicks', 'conversions', 'cost', 'profit', 'revenue'];
@@ -42,7 +44,9 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
     });
     
     return result;
-  }, [tableData]);
+  }, [tableData]);*/
+
+  const totals = serverTotals;
 
   // Save custom groups to sessionStorage whenever they change
   useEffect(() => {
@@ -65,7 +69,13 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
       
       setIsLoading(true);
       try {
-        let data = await fetchTableData(activeTab, dateRange, filters);
+        const response = await fetchTableData(activeTab, dateRange, filters);
+        // Extract data and totals from the new response format
+        let data = response.data || response; // Fallback to response if data property doesn't exist
+        const totals = response.totals || null;
+        // Set server totals
+        setServerTotals(totals);
+
         //if a group is selected, display 'primary_value' and 'secondary_value' values in key columns
         if (customGroups.some(group => group.name === activeTab)) {
           const group = customGroups.find(g => g.name === activeTab);
@@ -79,6 +89,7 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
       } catch (error) {
         console.error("Error fetching data:", error);
         setTableData([]);
+        setServerTotals(null);
       } finally {
         setIsLoading(false);
       }

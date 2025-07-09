@@ -25,8 +25,10 @@ export const fetchTableData = async (tabType, dateRange, filters) => {
     if (!response.ok) {
       throw new Error(`API request failed with status ${response.status}`);
     }
-
-    return await response.json();
+    
+    const result = await response.json();
+    // Return the full response object containing both data and totals
+    return result;
   } catch (error) {
     console.error("Error fetching table data:", error);
     throw error;

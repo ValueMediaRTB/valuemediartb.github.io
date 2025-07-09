@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Table, Pagination, Form, Button } from 'react-bootstrap';
 import './MainTable.css';
 
@@ -11,11 +11,14 @@ const MainTable = ({
   onPageSizeChange,
   onPageChange,
   isLoading,
-  filters = [] // Add filters prop
+  filters = [], // Add filters prop
+  totals = null // Add totals prop
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(initialPageSize);
   const [manualPageInput, setManualPageInput] = useState('');
+  const tableRef = useRef(null);
+  const [columnWidths, setColumnWidths] = useState([]);
 
   // Apply client-side filtering (exclude traffic_source as it's handled server-side)
   const filteredData = useMemo(() => {
@@ -88,6 +91,35 @@ const MainTable = ({
 
   const totalPages = Math.ceil(sortedData.length / pageSize);
 
+  // Measure column widths from the actual table
+  useEffect(() => {
+    if (tableRef.current && columns.length > 0) {
+      // Use a small delay to ensure the table is fully rendered
+      const measureWidths = () => {
+        // Double-check that tableRef is still valid
+        if (!tableRef.current) return;
+        
+        const headerCells = tableRef.current.querySelectorAll('thead th');
+        if (headerCells.length === 0) return;
+        
+        const widths = Array.from(headerCells).map(cell => {
+          // Get the computed style to account for borders and padding
+          const computedStyle = window.getComputedStyle(cell);
+          const borderLeft = parseFloat(computedStyle.borderLeftWidth) || 0;
+          const borderRight = parseFloat(computedStyle.borderRightWidth) || 0;
+          // Return the full width including borders
+          return cell.offsetWidth;
+        });
+        setColumnWidths(widths);
+      };
+      
+      const timeoutId = setTimeout(measureWidths, 50);
+      
+      // Cleanup function to clear timeout if component unmounts
+      return () => clearTimeout(timeoutId);
+    }
+  }, [columns, data, paginatedData]);
+
   const requestSort = (key) => {
     if (!onSort) return;
     onSort(key);
@@ -139,13 +171,16 @@ const MainTable = ({
     URL.revokeObjectURL(url);
   };
 
-  const formatCellValue = (value, key) => {
+  const formatCellValue = (value, key,precision) => {
     if (typeof value === 'number') {
-      if (['cost', 'profit', 'revenue', 'cpc', 'epc'].includes(key)) {
-        return `$${value.toFixed(7)}`;
+      if (['cost', 'profit', 'revenue'].includes(key)) {
+        return `$${value.toLocaleString('en-US', { minimumFractionDigits: precision, maximumFractionDigits: precision })}`;
       }
       if (['cr'].includes(key)) {
-        return `${value.toFixed(7)}`;
+        return value.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 });
+      }
+      if (['cpc','epc'].includes(key)) {
+        return `$${value.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 })}`;
       }
       if (['roi'].includes(key)) {
         return `${value.toFixed(2)}%`;
@@ -238,7 +273,7 @@ const MainTable = ({
   return (
     <div className="table-responsive-container">
       <div className="table-wrapper">
-        <Table striped bordered hover>
+        <Table striped bordered hover ref={tableRef}>
           <thead className="table-header">
             <tr>
               {columns.map(column => (
@@ -266,7 +301,7 @@ const MainTable = ({
                 <tr key={row.id || index}>
                   {columns.map(column => (
                     <td key={`${row.id || index}-${column.key}`}>
-                      {formatCellValue(row[column.key], column.key)}
+                      {formatCellValue(row[column.key], column.key,2)}
                     </td>
                   ))}
                 </tr>
@@ -281,6 +316,64 @@ const MainTable = ({
           </tbody>
         </Table>
       </div>
+
+      {/* Fixed totals row above pagination - using measured column widths */}
+      {totals && columnWidths.length > 0 && (
+        <div 
+          style={{
+            position: 'sticky',
+            bottom: '40px',
+            zIndex: 99,
+            background: 'white',
+            borderTop: '3px solid #dee2e6',
+            borderBottom: '2px solid #dee2e6',
+            display: 'flex',
+            height: '36px'
+          }}
+        >
+          {columns.map((column, index) => {
+            // Determine what to display in each cell
+            let cellContent = '';
+            
+            if (index === 0) {
+              // First column always shows "TOTALS"
+              cellContent = 'TOTALS';
+            }else if (totals && column.key == 'name')
+              cellContent = '';
+             else if (totals && Object.prototype.hasOwnProperty.call(totals, column.key)) {
+              // Show the total value if it exists for this column
+              cellContent = formatCellValue(totals[column.key], column.key,2);
+            }
+            
+            return (
+              <div
+                key={`totals-${column.key}`}
+                style={{
+                  width: `${columnWidths[index]}px`,
+                  minWidth: `${columnWidths[index]}px`,
+                  maxWidth: `${columnWidths[index]}px`,
+                  padding: '0.4rem 0.75rem',
+                  fontSize: '0.875rem',
+                  lineHeight: '1.3',
+                  fontWeight: 'bold',
+                  backgroundColor: '#e9ecef',
+                  border: '1px solid #dee2e6',
+                  borderLeft: index === 0 ? '1px solid #dee2e6' : 'none',
+                  borderRight: index === columns.length - 1 ? '1px solid #dee2e6' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  boxSizing: 'border-box' // Ensure padding is included in width calculation
+                }}
+              >
+                {cellContent}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="sticky-pagination-footer">
         <div className="d-flex justify-content-between align-items-center bg-white border-top">
