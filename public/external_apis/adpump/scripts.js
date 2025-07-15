@@ -153,6 +153,7 @@ async function exportOffers(){
     try {
         const user = document.getElementById('userSelect').value;
         document.getElementById('resultTitle').innerHTML = "Sent exportOffers request to server, waiting for response...";
+        document.getElementById('resultContainer').innerHTML = "This may take a couple of minutes.";
         const response = await fetch(`${serverURL}/export` , {
         method: 'POST',
         body: JSON.stringify({
@@ -181,6 +182,46 @@ async function exportOffers(){
                 
             document.getElementById('resultContainer').innerHTML = "";
             console.log('adPump/exportOffers() success:', data);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+async function subscribeAll(){
+    if(!validateInput()){
+        alert('In adPump/subscribeAll(): Invalid input!');
+        return;
+    }
+    try {
+        const user = document.getElementById('userSelect').value;
+        document.getElementById('resultTitle').innerHTML = "Sent exportOffers request to server, waiting for response...";
+        document.getElementById('resultContainer').innerHTML = "This may take a couple of minutes.";
+        const response = await fetch(`${serverURL}/update` , {
+        method: 'POST',
+        body: JSON.stringify({
+            commands : [  
+                {
+                    commandName:"adPumpSubscribeAll"
+                },
+                {
+                    user:user
+                }
+            ]
+            }),
+        headers: { 'Content-Type': 'application/json' }
+        });
+
+        // First check if the HTTP request itself succeeded
+        if (!response.ok) {
+            console.error("In adPump/subscribeAll(): received error response from server");
+            document.getElementById('resultTitle').innerHTML = "adPump/subscribeAll failed! Received response "+response.status;
+        }
+        else{
+            const data = await response.json();
+            document.getElementById('resultTitle').innerHTML = "Subscribe to all offers successful!";
+            document.getElementById('resultContainer').innerHTML = "Subscribed to: "+data.join(",");
+            console.log('adPump/subscribeAll() success:', data);
         }
     } catch (error) {
         console.error('Error:', error);
