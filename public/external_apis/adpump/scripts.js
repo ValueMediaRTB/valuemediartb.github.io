@@ -176,7 +176,7 @@ async function exportOffers(){
         }
         else{
             const data = await response.json();
-            document.getElementById('resultTitle').innerHTML = "Export offers successful!";
+            document.getElementById('resultTitle').innerHTML = "Export offers successful for user "+user+" !";
             document.getElementById('resultContainer').innerHTML = "Downloading adPumpOffers.csv...";
             downloadCSV(data,'adPumpOffers.csv');
                 
@@ -219,7 +219,7 @@ async function subscribeAll(){
         }
         else{
             const data = await response.json();
-            document.getElementById('resultTitle').innerHTML = "Subscribe to all offers successful!";
+            document.getElementById('resultTitle').innerHTML = "Subscribe to all offers successful for user "+user+" !";
             document.getElementById('resultContainer').innerHTML = "Subscribed to: "+data.join(",");
             console.log('adPump/subscribeAll() success:', data);
         }
