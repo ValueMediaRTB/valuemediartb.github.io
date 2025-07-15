@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Tab, Nav, Button, Modal, Form } from 'react-bootstrap';
+import { Tab, Nav, Button, Modal, Form/*,ProgressBar*/ } from 'react-bootstrap';
 import MainTable from './MainTable';
 import { fetchTableData } from '../api';
 
@@ -15,8 +15,10 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
   });
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [tableData, setTableData] = useState([]);
-  const [serverTotals, setServerTotals] = useState(null); // State for server totals
+  const [serverTotals, setServerTotals] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState('');
   const [newGroup, setNewGroup] = useState({
     option1: 'None',
     option2: 'None'
@@ -69,9 +71,13 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
       
       setIsLoading(true);
       try {
+        setLoadingProgress(20);
+        setLoadingMessage('Sending request...');
         const response = await fetchTableData(activeTab, dateRange, filters);
-        // Extract data and totals from the new response format
-        let data = response.data || response; // Fallback to response if data property doesn't exist
+        setLoadingProgress(70);
+        setLoadingMessage('Processing data...');
+        let data = response.data || response;
+
         const totals = response.totals || null;
         // Set server totals
         setServerTotals(totals);
@@ -86,12 +92,24 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
           }));
         }
         setTableData(data);
+        setLoadingProgress(90);
+        setLoadingMessage(`Loaded ${data.length} records successfully`);
+        // Clear loading state after a brief delay to show completion
+        setTimeout(() => {
+          setLoadingProgress(100);
+          setTimeout(() => {
+            setIsLoading(false);
+            setLoadingProgress(0);
+            setLoadingMessage('');
+          }, 500);
+        }, 200);
       } catch (error) {
         console.error("Error fetching data:", error);
         setTableData([]);
         setServerTotals(null);
-      } finally {
+        setLoadingMessage('Error loading data')
         setIsLoading(false);
+        setLoadingProgress(0);
       }
     };
 
@@ -245,12 +263,26 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
           variant="outline-primary" 
           onClick={handleCreateGroup}
           disabled={!dateRange.start || !dateRange.end ||isLoading}
-          className="ms-2"
+          className="ms-2 mt-1"
           style={{ whiteSpace: 'nowrap' }}
         >
           Create Group
         </Button>
       </div>
+      {/* Loading Progress Bar */}
+      {/*isLoading && (
+        <div className="mt-2 mb-2">
+          <div className="d-flex justify-content-between align-items-center mb-1">
+            <small className="text-muted">{loadingMessage}</small>
+            <small className="text-muted">{loadingProgress.toFixed(0)}%</small>
+          </div>
+          <ProgressBar 
+            now={loadingProgress} 
+            variant={loadingProgress < 30 ? "info" : loadingProgress < 70 ? "warning" : "success"}
+            style={{ height: '4px' }}
+          />
+        </div>
+      )*/}
 
       {activeTab && (
         <div className="mt-1" style={{ position: 'relative' }}>
@@ -263,6 +295,8 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
             isLoading={isLoading}
             totals={totals}
             filters={filters}
+            activeTab={activeTab}
+            dateRange={dateRange}
             stickyHeader
             stickyPagination
           />

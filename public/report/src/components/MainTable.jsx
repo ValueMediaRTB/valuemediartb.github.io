@@ -1,5 +1,8 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Table, Pagination, Form, Button } from 'react-bootstrap';
+import * as XLSX from 'xlsx';
+import { format } from 'date-fns';
+import config from '../config';
 import './MainTable.css';
 
 const MainTable = ({ 
@@ -11,14 +14,21 @@ const MainTable = ({
   onPageSizeChange,
   onPageChange,
   isLoading,
-  filters = [], // Add filters prop
-  totals = null // Add totals prop
+  filters = [], 
+  totals = null, 
+  activeTab = '', 
+  dateRange = null 
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(initialPageSize);
   const [manualPageInput, setManualPageInput] = useState('');
   const tableRef = useRef(null);
   const [columnWidths, setColumnWidths] = useState([]);
+
+  // DEBUG: Log totals information
+  console.log('MainTable DEBUG - totals:', totals);
+  console.log('MainTable DEBUG - totals type:', typeof totals);
+  console.log('MainTable DEBUG - has totals data:', !!(totals && typeof totals === 'object' && Object.keys(totals).length > 0));
 
   // Apply client-side filtering (exclude traffic_source as it's handled server-side)
   const filteredData = useMemo(() => {
@@ -91,34 +101,88 @@ const MainTable = ({
 
   const totalPages = Math.ceil(sortedData.length / pageSize);
 
-  // Measure column widths from the actual table
+  // Enhanced column width measurement with better timing and reliability
   useEffect(() => {
-    if (tableRef.current && columns.length > 0) {
-      // Use a small delay to ensure the table is fully rendered
-      const measureWidths = () => {
-        // Double-check that tableRef is still valid
-        if (!tableRef.current) return;
+    const measureColumnWidths = () => {
+      if (!tableRef.current || columns.length === 0) return;
+      
+      // Find all header cells
+      const headerCells = tableRef.current.querySelectorAll('thead th');
+      if (headerCells.length === 0) return;
+      
+      // Measure each column width more accurately
+      const widths = Array.from(headerCells).map((cell, index) => {
+        const rect = cell.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(cell);
         
-        const headerCells = tableRef.current.querySelectorAll('thead th');
-        if (headerCells.length === 0) return;
+        // Get the full width including padding and borders
+        const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+        const paddingRight = parseFloat(computedStyle.paddingRight) || 0;
+        const borderLeft = parseFloat(computedStyle.borderLeftWidth) || 0;
+        const borderRight = parseFloat(computedStyle.borderRightWidth) || 0;
         
-        const widths = Array.from(headerCells).map(cell => {
-          // Get the computed style to account for borders and padding
-          const computedStyle = window.getComputedStyle(cell);
-          const borderLeft = parseFloat(computedStyle.borderLeftWidth) || 0;
-          const borderRight = parseFloat(computedStyle.borderRightWidth) || 0;
-          // Return the full width including borders
-          return cell.offsetWidth;
+        const totalWidth = rect.width;
+        
+        console.log(`Column ${index} (${columns[index]?.key}): ${totalWidth}px`);
+        return Math.round(totalWidth);
+      });
+      
+      // Only update if we have valid measurements and they've changed
+      if (widths.length === columns.length && widths.every(w => w > 0)) {
+        setColumnWidths(prevWidths => {
+          const hasChanged = prevWidths.length !== widths.length || 
+                           prevWidths.some((w, i) => Math.abs(w - widths[i]) > 1);
+          
+          if (hasChanged) {
+            console.log('Column widths updated:', widths);
+            return widths;
+          }
+          return prevWidths;
         });
-        setColumnWidths(widths);
-      };
-      
-      const timeoutId = setTimeout(measureWidths, 50);
-      
-      // Cleanup function to clear timeout if component unmounts
-      return () => clearTimeout(timeoutId);
-    }
-  }, [columns, data, paginatedData]);
+      }
+    };
+
+    // Multiple measurement attempts with different timings to ensure accuracy
+    const timeouts = [
+      setTimeout(measureColumnWidths, 10),   // Very quick first attempt
+      setTimeout(measureColumnWidths, 50),   // Early measurement
+      setTimeout(measureColumnWidths, 150),  // After render settles
+      setTimeout(measureColumnWidths, 300),  // Fallback measurement
+      setTimeout(measureColumnWidths, 600)   // Final fallback
+    ];
+
+    // Also measure on window resize
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      const resizeTimeout = setTimeout(measureColumnWidths, 100);
+    };
+    
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup function
+    return () => {
+      timeouts.forEach(clearTimeout);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [columns, paginatedData, activeTab, data.length]); // Include activeTab and data.length as dependencies
+
+  // Force re-measurement when tab changes or data structure changes significantly
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (tableRef.current && columns.length > 0) {
+        const headerCells = tableRef.current.querySelectorAll('thead th');
+        if (headerCells.length > 0) {
+          const widths = Array.from(headerCells).map(cell => {
+            return Math.round(cell.getBoundingClientRect().width);
+          });
+          setColumnWidths(widths);
+          console.log('Force-measured column widths for tab change:', widths);
+        }
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [activeTab]);
 
   const requestSort = (key) => {
     if (!onSort) return;
@@ -147,31 +211,93 @@ const MainTable = ({
     }
   };
 
-  const exportToCSV = () => {
-    const headers = columns.map(col => col.label).join(',');
-    const csvData = filteredData.map(row => 
-      columns.map(col => {
-        const value = row[col.key];
-        if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
-          return `"${value.replace(/"/g, '""')}"`;
-        }
-        return value;
-      }).join(',')
-    ).join('\n');
+  const exportToXLSX = () => {
+    // Generate filename components
+    const reportId = config.reportId;
+    const tabOrGroupName = activeTab || 'data';
     
-    const csv = headers + '\n' + csvData;
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `data_export_${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Format date range
+    let timePeriod = '';
+    if (dateRange && dateRange.start && dateRange.end) {
+      const startDate = format(dateRange.start, 'yyyy-MM-dd');
+      const endDate = format(dateRange.end, 'yyyy-MM-dd');
+      timePeriod = startDate === endDate ? startDate : `${startDate}_to_${endDate}`;
+    } else {
+      timePeriod = format(new Date(), 'yyyy-MM-dd');
+    }
+    
+    // Format current filters
+    let currentFilters = '';
+    if (filters && filters.length > 0) {
+      const filterStrings = filters.map(filter => {
+        const operator = filter.operator && filter.operator !== '=' ? filter.operator : '';
+        const value = String(filter.value).replace(/[^a-zA-Z0-9]/g, ''); // Remove special characters
+        return `${filter.type}${operator}${value}`;
+      });
+      currentFilters = '_' + filterStrings.join('_');
+    }
+    
+    // Construct filename
+    const filename = `report_${reportId}_${tabOrGroupName}_${timePeriod}${currentFilters}.xlsx`;
+    
+    // Prepare data for export
+    const exportData = filteredData.map(row => {
+      const exportRow = {};
+      columns.forEach(col => {
+        let value = row[col.key];
+        
+        // Format values for export (remove currency symbols and percentages for cleaner data)
+        if (typeof value === 'number') {
+          if (['cost', 'profit', 'revenue', 'cpc', 'epc'].includes(col.key)) {
+            exportRow[col.label] = value; // Keep as number for Excel
+          } else if (['roi'].includes(col.key)) {
+            exportRow[col.label] = value; // Keep as number, Excel can format as percentage
+          } else if (['cr'].includes(col.key)) {
+            exportRow[col.label] = value;
+          } else {
+            exportRow[col.label] = value;
+          }
+        } else {
+          exportRow[col.label] = value;
+        }
+      });
+      return exportRow;
+    });
+    
+    // Add totals row if available
+    if (totals && typeof totals === 'object' && Object.keys(totals).length > 0) {
+      const totalsRow = {};
+      columns.forEach(col => {
+        if (col.key === 'name' || columns.indexOf(col) === 0) {
+          totalsRow[col.label] = 'TOTALS';
+        } else if (totals[col.key] !== undefined) {
+          totalsRow[col.label] = totals[col.key];
+        } else {
+          totalsRow[col.label] = '';
+        }
+      });
+      exportData.push(totalsRow);
+    }
+    
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    
+    // Auto-size columns
+    const colWidths = columns.map(col => ({
+      wch: Math.max(col.label.length, 15) // Minimum width of 15 characters
+    }));
+    worksheet['!cols'] = colWidths;
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, activeTab || 'Data');
+    
+    // Save file
+    XLSX.writeFile(workbook, filename);
+    config.reportId += 1;
   };
 
-  const formatCellValue = (value, key,precision) => {
+  const formatCellValue = (value, key, precision) => {
     if (typeof value === 'number') {
       if (['cost', 'profit', 'revenue'].includes(key)) {
         return `$${value.toLocaleString('en-US', { minimumFractionDigits: precision, maximumFractionDigits: precision })}`;
@@ -187,6 +313,21 @@ const MainTable = ({
       }
     }
     return value;
+  };
+
+  const getRoiCellStyle = (value, key) => {
+    if (key === 'roi' && typeof value === 'number') {
+      if (value < 0) {
+        return { backgroundColor: '#ffebee', color: '#c62828' }; // Light red background, dark red text
+      } else if (value >= 0 && value < 100) {
+        return { backgroundColor: '#fff3e0', color: '#ef6c00' }; // Light orange background, dark orange text
+      } else if (value >= 100 && value < 300) {
+        return { backgroundColor: '#e8f5e8', color: '#2e7d32' }; // Light green background, dark green text
+      } else if (value >= 300) {
+        return { backgroundColor: '#c8e6c9', color: '#1b5e20' }; // Medium green background, darker green text
+      }
+    }
+    return {};
   };
 
   const generatePaginationItems = () => {
@@ -260,6 +401,10 @@ const MainTable = ({
     setCurrentPage(1);
   }, [filters]);
 
+  // Check if we should render totals
+  const shouldRenderTotals = totals && typeof totals === 'object' && Object.keys(totals).length > 0;
+  console.log('Should render totals:', shouldRenderTotals);
+
   if (isLoading) {
     return (
       <div className="text-center py-5">
@@ -300,8 +445,8 @@ const MainTable = ({
               paginatedData.map((row, index) => (
                 <tr key={row.id || index}>
                   {columns.map(column => (
-                    <td key={`${row.id || index}-${column.key}`}>
-                      {formatCellValue(row[column.key], column.key,2)}
+                    <td key={`${row.id || index}-${column.key}`} style={getRoiCellStyle(row[column.key], column.key)}>
+                      {formatCellValue(row[column.key], column.key, 2)}
                     </td>
                   ))}
                 </tr>
@@ -314,66 +459,41 @@ const MainTable = ({
               </tr>
             )}
           </tbody>
+          {shouldRenderTotals && (
+  <tfoot>
+    <tr>
+      {columns.map((column, index) => {
+        let cellContent = '';
+
+        if (index === 0) {
+          cellContent = 'TOTALS';
+        } else if (column.key === 'name') {
+          cellContent = '';
+        } else if (Object.prototype.hasOwnProperty.call(totals, column.key)) {
+          cellContent = formatCellValue(totals[column.key], column.key, 2);
+        }
+
+        return (
+          <td
+            key={`totals-${column.key}`}
+            style={{
+              fontWeight: 'bold',
+              backgroundColor: '#e9ecef',
+              position: 'sticky',
+              bottom: 0, // adjust if your pagination/footer height changes
+              zIndex: 3,
+              borderTop: '3px solid #dee2e6'
+            }}
+          >
+            {cellContent}
+          </td>
+        );
+      })}
+    </tr>
+  </tfoot>
+)}
         </Table>
       </div>
-
-      {/* Fixed totals row above pagination - using measured column widths */}
-      {totals && columnWidths.length > 0 && (
-        <div 
-          style={{
-            position: 'sticky',
-            bottom: '40px',
-            zIndex: 99,
-            background: 'white',
-            borderTop: '3px solid #dee2e6',
-            borderBottom: '2px solid #dee2e6',
-            display: 'flex',
-            height: '36px'
-          }}
-        >
-          {columns.map((column, index) => {
-            // Determine what to display in each cell
-            let cellContent = '';
-            
-            if (index === 0) {
-              // First column always shows "TOTALS"
-              cellContent = 'TOTALS';
-            }else if (totals && column.key == 'name')
-              cellContent = '';
-             else if (totals && Object.prototype.hasOwnProperty.call(totals, column.key)) {
-              // Show the total value if it exists for this column
-              cellContent = formatCellValue(totals[column.key], column.key,2);
-            }
-            
-            return (
-              <div
-                key={`totals-${column.key}`}
-                style={{
-                  width: `${columnWidths[index]}px`,
-                  minWidth: `${columnWidths[index]}px`,
-                  maxWidth: `${columnWidths[index]}px`,
-                  padding: '0.4rem 0.75rem',
-                  fontSize: '0.875rem',
-                  lineHeight: '1.3',
-                  fontWeight: 'bold',
-                  backgroundColor: '#e9ecef',
-                  border: '1px solid #dee2e6',
-                  borderLeft: index === 0 ? '1px solid #dee2e6' : 'none',
-                  borderRight: index === columns.length - 1 ? '1px solid #dee2e6' : 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  boxSizing: 'border-box' // Ensure padding is included in width calculation
-                }}
-              >
-                {cellContent}
-              </div>
-            );
-          })}
-        </div>
-      )}
 
       <div className="sticky-pagination-footer">
         <div className="d-flex justify-content-between align-items-center bg-white border-top">
@@ -391,7 +511,7 @@ const MainTable = ({
             <Button 
               variant="outline-success" 
               size="sm" 
-              onClick={exportToCSV}
+              onClick={exportToXLSX}
               style={{ whiteSpace: 'nowrap' }}
             >
               Export Data

@@ -39,7 +39,7 @@ function App() {
 
   return (
     <div className="app-container d-flex flex-column vh-100">
-      <NavigationBar />
+      <NavigationBar currentDateRange={dateRange}/>
       <div className="flex-grow-1">
         <DateRangeSelector 
           onDateChange={handleDateChange} 

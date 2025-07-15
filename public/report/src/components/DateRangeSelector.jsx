@@ -30,21 +30,20 @@ const numericFilters = [
 ];
 
 const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, availableColumns = [] }) => {
-  // Calculate default last 7 days interval here:
   const getDefaultLast7Days = () => {
     const end = new Date();
     const start = new Date();
-    start.setDate(end.getDate() - 6); // last 7 days includes today + 6 previous days
+    start.setDate(end.getDate() - 6);
     return [start, end];
   };
 
-  // Set default state to last 7 days
   const [dateRange, setDateRange] = useState(getDefaultLast7Days());
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [filterValues, setFilterValues] = useState({});
-  const [startDate, endDate] = dateRange;
-
   const [filterOperators, setFilterOperators] = useState({});
+  const [dateWarning, setDateWarning] = useState('');
+
+  const [startDate, endDate] = dateRange;
 
   const handleOperatorChange = (filter, operator) => {
     setFilterOperators({ ...filterOperators, [filter]: operator });
@@ -71,19 +70,14 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
     setFilterValues({ ...filterValues, [filter]: value });
   };
 
-  // Helper function to compare dates
   const datesAreEqual = (date1, date2) => {
     if (!date1 && !date2) return true;
     if (!date1 || !date2) return false;
     return date1.getTime() === date2.getTime();
   };
 
-  // Generate filter options based on mandatory filters + available columns
   const getFilterOptions = () => {
-    // Start with mandatory filters
     const mandatoryKeys = mandatoryFilterOptions.map(filter => filter.key);
-    
-    // Get unique columns that aren't already in mandatory list
     const uniqueColumns = availableColumns
       .filter(col => !mandatoryKeys.includes(col.key))
       .map(col => ({
@@ -97,16 +91,17 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
   const filterOptions = getFilterOptions();
 
   const handleApplyAll = () => {
+    if (dateWarning) return;
+
     let hasDateChanged = false;
 
-    // Check if dates have actually changed
     if (startDate && endDate) {
       const currentStart = currentDateRange?.start;
       const currentEnd = currentDateRange?.end;
-      
-      hasDateChanged = !datesAreEqual(startDate, currentStart) || 
-                      !datesAreEqual(endDate, currentEnd);
-      
+
+      hasDateChanged = !datesAreEqual(startDate, currentStart) ||
+        !datesAreEqual(endDate, currentEnd);
+
       onDateChange({ start: startDate, end: endDate }, hasDateChanged);
     }
 
@@ -122,39 +117,53 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
   };
 
   return (
-    <div className="bg-light px-3 pb-2 mb-2">
+    <div className="bg-light px-3 pb-2">
       <div className="d-flex align-items-end gap-2 flex-wrap">
-        {/* Date Picker with slightly increased width */}
+        {/* Date Picker */}
         <div style={{ minWidth: '250px', display: 'grid' }}>
-          <div className={"form-label"} style={{ fontSize: '0.9rem', marginBottom: '2px', marginTop: '4px' }}>
-            {"Date"}
+          <div className="form-label" style={{ fontSize: '0.9rem', marginBottom: '2px', marginTop: '4px' }}>
+            Date
           </div>
           <DatePicker
             selectsRange
             startDate={startDate}
             endDate={endDate}
             onChange={(update) => {
-              // If cleared (update is null or [null, null]), reset to default last 7 days
-              if (
-                !update || 
-                (Array.isArray(update) && update.every(date => date === null))
-              ) {
+              if (!update || (Array.isArray(update) && update.every(date => date === null))) {
                 setDateRange(getDefaultLast7Days());
-              } else {
-                setDateRange(update);
+                setDateWarning('');
+                return;
               }
+
+              const [start, end] = update;
+
+              if (start && end) {
+                const diffInDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+                if (diffInDays > 60) {
+                  setDateRange(getDefaultLast7Days());
+                  setDateWarning('Please select a range of 60 days or less.');
+                  return;
+                }
+              }
+              setDateRange(update);
+              setDateWarning('');
             }}
             className="form-control"
             placeholderText="Select date range"
           />
+          {dateWarning && (
+            <div style={{ color: 'red', fontSize: '0.85rem', marginTop: '4px' }}>
+              {dateWarning}
+            </div>
+          )}
         </div>
 
         {/* Apply Button */}
-        <Button variant="primary" onClick={handleApplyAll}>
+        <Button variant="primary" onClick={handleApplyAll} disabled={!!dateWarning}>
           Apply
         </Button>
 
-        {/* Add Filter Button (placed outside scroll container) */}
+        {/* Add Filter Dropdown */}
         <Dropdown>
           <Dropdown.Toggle variant="outline-secondary">
             Add Filter
@@ -172,7 +181,7 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
           </Dropdown.Menu>
         </Dropdown>
 
-        {/* Scrollable Filter Inputs */}
+        {/* Filter Input Fields */}
         <div
           style={{
             overflowX: 'auto',
@@ -185,7 +194,7 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
           {selectedFilters.map(filter => {
             const filterOption = filterOptions.find(opt => opt.key === filter);
             const filterLabel = filterOption ? filterOption.label : filter;
-            
+
             return (
               <div
                 key={filter}

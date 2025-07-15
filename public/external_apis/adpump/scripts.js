@@ -3,7 +3,7 @@ let accountID;
 let adPumpToken
 let adPumpAuthorized = false;
 
-function tradeTrackerIndexLoaded(){
+function adPumpIndexLoaded(){
    serverURL = sessionStorage.getItem('serverURL',serverURL);
     if(!serverURL || serverURL == "undefined"){}
     else{
@@ -151,6 +151,7 @@ async function exportOffers(){
         return;
     }
     try {
+        const user = document.getElementById('userSelect').value;
         document.getElementById('resultTitle').innerHTML = "Sent exportOffers request to server, waiting for response...";
         const response = await fetch(`${serverURL}/export` , {
         method: 'POST',
@@ -160,12 +161,7 @@ async function exportOffers(){
                     commandName:"adPumpOffers"
                 },
                 {
-                    /*
-                    commandName:"getCampaigns",
-                    targetUrl:`https://api.kwanko.com/publishers/campaigns`,
-                    headers: { 'Authorization':'Bearer '+token },
-                    method:"POST",
-                    body:{user:document.getElementById('accountInput').value}*/
+                    user:user
                 }
             ]
             }),
@@ -180,10 +176,10 @@ async function exportOffers(){
         else{
             const data = await response.json();
             document.getElementById('resultTitle').innerHTML = "Export offers successful!";
-
             document.getElementById('resultContainer').innerHTML = "Downloading adPumpOffers.csv...";
             downloadCSV(data.result,'adPumpOffers.csv');
                 
+            document.getElementById('resultContainer').innerHTML = "";
             console.log('adPump/exportOffers() success:', data);
         }
     } catch (error) {

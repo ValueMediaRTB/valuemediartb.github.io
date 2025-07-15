@@ -44,7 +44,34 @@ body {
   padding: 0.2rem 0.5rem !important;
   font-size: 0.8rem !important;
 }
+/* Compact dropdown menus */
+.dropdown-menu {
+  font-size: 0.875rem !important;
+}
 
+.dropdown-item {
+  padding: 0.25rem 1rem !important;
+}
+
+/* Compact labels */
+.form-label {
+  margin-bottom: 0.25rem !important;
+  font-size: 0.8rem !important;
+  font-weight: 500 !important;
+}
+
+/* Compact modal */
+.modal-header {
+  padding: 0.75rem 1rem !important;
+}
+
+.modal-body {
+  padding: 0.75rem 1rem !important;
+}
+
+.modal-footer {
+  padding: 0.5rem 1rem !important;
+}
 /* Compact navigation */
 .nav-link {
   position: relative;
@@ -64,8 +91,8 @@ body {
   opacity: 1;
 }
 .nav-tabs {
-  border-bottom: 2px solid #dee2e6;
-  margin-bottom: 8px; /* Reduced margin */
+  border-bottom: 1px solid #dee2e6;
+  margin-bottom: -4px;
 }
 
 /* Compact datepicker */
@@ -89,33 +116,4 @@ body {
 .table-container {
   height: calc(100vh - 220px); /* Adjusted for compact layout */
   overflow-y: auto;
-}
-
-/* Compact labels */
-.form-label {
-  margin-bottom: 0.25rem !important;
-  font-size: 0.8rem !important;
-  font-weight: 500 !important;
-}
-
-/* Compact dropdown menus */
-.dropdown-menu {
-  font-size: 0.875rem !important;
-}
-
-.dropdown-item {
-  padding: 0.25rem 1rem !important;
-}
-
-/* Compact modal */
-.modal-header {
-  padding: 0.75rem 1rem !important;
-}
-
-.modal-body {
-  padding: 0.75rem 1rem !important;
-}
-
-.modal-footer {
-  padding: 0.5rem 1rem !important;
 }
