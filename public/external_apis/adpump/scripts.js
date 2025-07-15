@@ -177,7 +177,7 @@ async function exportOffers(){
             const data = await response.json();
             document.getElementById('resultTitle').innerHTML = "Export offers successful!";
             document.getElementById('resultContainer').innerHTML = "Downloading adPumpOffers.csv...";
-            downloadCSV(data.result,'adPumpOffers.csv');
+            downloadCSV(data,'adPumpOffers.csv');
                 
             document.getElementById('resultContainer').innerHTML = "";
             console.log('adPump/exportOffers() success:', data);
