@@ -216,16 +216,16 @@ async function daisyconAuthLoaded(){
 }
 async function logout() {
 
-    sessionStorage.setItem('access_token',null);
-    sessionStorage.setItem('refresh_token',null);
-    sessionStorage.setItem('clientID',null);
-    sessionStorage.setItem('userID',null);
-    access_token = '';
-    refresh_token = '';
-    clientID = '';
-    userID = '';
+    sessionStorage.setItem('access_token',undefined);
+    sessionStorage.setItem('refresh_token',undefined);
+    sessionStorage.setItem('clientID',undefined);
+    sessionStorage.setItem('userID',undefined);
+    access_token = undefined;
+    refresh_token = undefined;
+    clientID = undefined;
+    userID = undefined;
     
-    location.replace("https://valuemediartb.github.io/public/external_apis_daisycon/index.html");
+    location.replace("https://valuemediartb.github.io/public/external_apis/daisycon/index.html");
     
     console.log("logout() finished")
 }
