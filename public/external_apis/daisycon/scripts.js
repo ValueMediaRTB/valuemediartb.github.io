@@ -220,8 +220,8 @@ async function authorizeDaisycon(){
     serverURL = document.getElementById('serverURLInput').value;
     
     // Validate inputs
-    if (!clientID || clientID == "undefined") {
-        alert('Client ID is missing!');
+    if (!userID || userID == "undefined") {
+        alert('userID is missing!');
         return;
     }
     if (!serverURL || serverURL == "undefined") {
