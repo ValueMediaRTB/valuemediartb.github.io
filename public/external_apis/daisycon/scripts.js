@@ -344,7 +344,8 @@ async function refreshAccessDaisycon(){
             body: formData,
             headers: { 'Content-Type': 'application/json' },
             method:"POST"
-          })
+          }),
+        headers:{"Content-Type":"application/json"}
         });
     
         const data = await response.json();
@@ -404,7 +405,8 @@ async function getCampaignMaterial(){
             headers: { 'accept': 'application/json',
             'Authorization':'Bearer '+access_token },
             method:"GET"
-            })
+            }),
+        headers:{"Content-Type":"application/json"}
         });
     
         const data = await response.json();
@@ -432,7 +434,8 @@ async function getPrograms(){
             headers: { 'accept': 'application/json',
             'Authorization':'Bearer '+access_token },
             method:"GET"
-            })
+            }),
+        headers:{"Content-Type":"application/json"}
         });
     
         const data = await response.json();
@@ -462,7 +465,8 @@ async function getMaterialDeeplinks(){
             headers: { 'accept': 'application/json',
             'Authorization':'Bearer '+access_token },
             method:"GET"
-            })
+            }),
+        headers:{"Content-Type":"application/json"}
         });
     
         const data = await response.json();
@@ -492,7 +496,8 @@ async function getProducts(){
             headers: { 'accept': 'application/json',
             'Authorization':'Bearer '+access_token },
             method:"GET"
-            })
+            }),
+        headers:{"Content-Type":"application/json"}
         });
     
         const data = await response.json();
