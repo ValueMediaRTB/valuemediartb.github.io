@@ -214,6 +214,21 @@ async function daisyconAuthLoaded(){
         }
     }
 }
+async function logout() {
+
+    sessionStorage.setItem('access_token',null);
+    sessionStorage.setItem('refresh_token',null);
+    sessionStorage.setItem('clientID',null);
+    sessionStorage.setItem('userID',null);
+    access_token = '';
+    refresh_token = '';
+    clientID = '';
+    userID = '';
+    
+    location.replace("https://valuemediartb.github.io/public/external_apis_daisycon/index.html");
+    
+    console.log("logout() finished")
+}
 
 async function authorizeDaisycon(){
     // Get form values
