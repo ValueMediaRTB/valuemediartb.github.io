@@ -9,8 +9,12 @@
     <form id="daisyconForm">
         <div style="display: grid; grid-template-columns: auto 1fr; align-items: center; margin:8px; gap: 8px">
             <div id="codeVerifierContainer" style="grid-column: 1 / span 2;"></div>
-            <label for="clientID" style="grid-row: 2;">Client ID:</label>
-            <input style="width:250px; grid-row: 2;" id="clientID" type="text" required>
+            <label for="userSelect" style="grid-row:1">Select user</label>
+            <select style="grid-row: 1; width:250px;" id="userSelect" type="text" required>
+                <option value="470777" selected>Netcraft</option>
+                <option value="470838" >Alphaads</option>
+                <option value="470796" >Trai</option>
+            </select>
             <label for="serverURLInput" style="grid-row: 3;">Server URL:</label>
             <input style="width:250px; grid-row: 3;" id="serverURLInput" type="text" required>
         </div>

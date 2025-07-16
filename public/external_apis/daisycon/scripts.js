@@ -148,7 +148,7 @@ async function daisyconIndexLoaded() {
     access_token = sessionStorage.getItem('access_token');
     refresh_token = sessionStorage.getItem('refresh_token');
     let auatoken;
-    if(!access_token  || access_token == "undefined" || !refresh_token  || refresh_token == "undefined"){
+    if(!access_token || access_token == "undefined" || !refresh_token  || refresh_token == "undefined"){
         document.getElementById('authorizeDaisyconBtn').disabled = false;
         sessionStorage.setItem('clientID', 0);
         serverURL = sessionStorage.getItem('serverURL')
@@ -213,10 +213,10 @@ async function daisyconAuthLoaded(){
     }
 }
 
-function authorizeDaisycon(){
+async function authorizeDaisycon(){
     // Get form values
     document.getElementById('authorizeDaisyconBtn').disabled = true
-    clientID = document.getElementById('clientID').value;
+    let userID = document.getElementById('userSelect').value;
     serverURL = document.getElementById('serverURLInput').value;
     
     // Validate inputs
@@ -232,17 +232,40 @@ function authorizeDaisycon(){
         alert('CodeVerifier or redirectURI are null!');
         return;
     }
+    const response = await fetch(`${serverURL}/export` , {
+        method: 'POST',
+        body: JSON.stringify({
+            commands : [  
+                {
+                    commandName:"daisyconClientID"
+                },
+                {
+                    user:userID
+                }
+            ]
+            }),
+        headers: { 'Content-Type': 'application/json' }
+        });
+    
+    if (!response.ok) {
+            console.error("In authorizeDaisycon(): received error response from server");
+            document.getElementById('resultTitle').innerHTML = "authorizeDaisycon failed! Received response "+response.status;
+        }
+    else{
+        respJson = await response.json();
+        console.log(respJson);
+        clientID = respJson.ID;
+        sessionStorage.setItem('clientID', clientID);
+        sessionStorage.setItem('serverURL',serverURL);
 
-    sessionStorage.setItem('clientID', clientID);
-    sessionStorage.setItem('serverURL',serverURL);
+        authorizeUrl = new URL('https://login.daisycon.com/oauth/authorize');
+        authorizeUrl.searchParams.append('response_type','code');
+        authorizeUrl.searchParams.append('client_id',clientID);
+        authorizeUrl.searchParams.append('redirect_uri',redirectURI);
+        authorizeUrl.searchParams.append('code_challenge',codeChallenge);
 
-    authorizeUrl = new URL('https://login.daisycon.com/oauth/authorize');
-    authorizeUrl.searchParams.append('response_type','code');
-    authorizeUrl.searchParams.append('client_id',clientID);
-    authorizeUrl.searchParams.append('redirect_uri',redirectURI);
-    authorizeUrl.searchParams.append('code_challenge',codeChallenge);
-
-    location.replace(authorizeUrl.toString())
+        location.replace(authorizeUrl.toString())
+    }
 }; 
 
 async function accessDaisycon(){
@@ -257,7 +280,8 @@ async function accessDaisycon(){
     }
 
     accessUrl = 'https://login.daisycon.com/oauth/access-token';
-    const formData = {'grant_type':'authorization_code',
+    const formData = {
+        'grant_type':'authorization_code',
         'code':token,
         'client_id':clientID,
         'client_secret':'',
@@ -491,15 +515,15 @@ async function getMedias(){
         pageNr = document.getElementById('pageInput').value || 1;
         pageSize = document.getElementById('pageSizeInput').value || 1000;
         const response = await fetch(`${serverURL}/proxy` , {
-        method: 'POST',
-        body: JSON.stringify({
-            targetUrl:`https://services.daisycon.com/publishers/${publisherID}/media`,
-            headers: { 'accept': 'application/json',
-            'Authorization':'Bearer '+access_token },
-            method:"GET"
-            ////,writeToFile: 1 use this in production mode
-            }),
-        headers: { 'Content-Type': 'application/json' }
+            method: 'POST',
+            body: JSON.stringify({
+                targetUrl:`https://services.daisycon.com/publishers/${publisherID}/media`,
+                headers: { 'accept': 'application/json',
+                'Authorization':'Bearer '+access_token },
+                method:"GET"
+                ////,writeToFile: 1 use this in production mode
+                }),
+            headers: { 'Content-Type': 'application/json' }
         });
         if (!response.ok) {
             console.error("In getMedias(): received error response from server");
