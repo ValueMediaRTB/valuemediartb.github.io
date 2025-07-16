@@ -272,8 +272,10 @@ async function accessDaisycon(){
             body: formData,
             headers: { 'Content-Type': 'application/json' },
             method:"POST"
-          })
-        });
+          }),
+          headers: { 
+            'Content-Type': 'application/json'
+        }});
     
         const data = await response.json();
         // Handle the response (e.g., save access token)

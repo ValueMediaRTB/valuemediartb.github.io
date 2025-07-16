@@ -195,7 +195,7 @@ async function subscribeAll(){
     }
     try {
         const user = document.getElementById('userSelect').value;
-        document.getElementById('resultTitle').innerHTML = "Sent exportOffers request to server, waiting for response...";
+        document.getElementById('resultTitle').innerHTML = "Sent subscribeAll request to server, waiting for response...";
         document.getElementById('resultContainer').innerHTML = "This may take a couple of minutes.";
         const response = await fetch(`${serverURL}/update` , {
         method: 'POST',
