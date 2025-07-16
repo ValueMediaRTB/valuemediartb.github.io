@@ -131,7 +131,6 @@ let refresh_token;
 let serverURL;
 let media;
 let pageNr,pageSize,mediaID,programID,mediaIDParam;
-const publisherID = 470796;
 const redirectURI = 'https://valuemediartb.github.io/public/external_apis/daisycon/auth.html'
 
 async function initializeCodes() {
@@ -401,7 +400,7 @@ async function getCampaignMaterial(){
         const response = await fetch(`${serverURL}/proxy`, {
         method: 'POST',
         body: JSON.stringify({
-            targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/programs?page=${pageNr}&per_page=${pageSize}`,
+            targetUrl:`https://services.daisycon.com/publishers/${clientID}/material/programs?page=${pageNr}&per_page=${pageSize}`,
             headers: { 'accept': 'application/json',
             'Authorization':'Bearer '+access_token },
             method:"GET"
@@ -430,7 +429,7 @@ async function getPrograms(){
         const response = await fetch(`${serverURL}/proxy`, {
         method: 'POST',
         body: JSON.stringify({
-            targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs?${mediaIDParam}order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
+            targetUrl:`https://services.daisycon.com/publishers/${clientID}/programs?${mediaIDParam}order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
             headers: { 'accept': 'application/json',
             'Authorization':'Bearer '+access_token },
             method:"GET"
@@ -461,7 +460,7 @@ async function getMaterialDeeplinks(){
         const response = await fetch(`${serverURL}/proxy`, {
         method: 'POST',
         body: JSON.stringify({
-            targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/deeplinks?${mediaIDParam}order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
+            targetUrl:`https://services.daisycon.com/publishers/${clientID}/material/deeplinks?${mediaIDParam}order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
             headers: { 'accept': 'application/json',
             'Authorization':'Bearer '+access_token },
             method:"GET"
@@ -492,7 +491,7 @@ async function getProducts(){
         const response = await fetch(`${serverURL}/proxy`, {
         method: 'POST',
         body: JSON.stringify({
-            targetUrl:`https://services.daisycon.com/publishers/${publisherID}/material/product-feeds/products?language_code=en&order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
+            targetUrl:`https://services.daisycon.com/publishers/${clientID}/material/product-feeds/products?language_code=en&order_direction=asc&page=${pageNr}&per_page=${pageSize}`,
             headers: { 'accept': 'application/json',
             'Authorization':'Bearer '+access_token },
             method:"GET"
@@ -522,7 +521,7 @@ async function getMedias(){
         const response = await fetch(`${serverURL}/proxy` , {
             method: 'POST',
             body: JSON.stringify({
-                targetUrl:`https://services.daisycon.com/publishers/${publisherID}/media`,
+                targetUrl:`https://services.daisycon.com/publishers/${clientID}/media`,
                 headers: { 'accept': 'application/json',
                 'Authorization':'Bearer '+access_token },
                 method:"GET"
@@ -566,14 +565,14 @@ async function exportOffers(){
                 },
                 {
                     commandName:"getMedia",
-                    targetUrl:`https://services.daisycon.com/publishers/${publisherID}/media`,
+                    targetUrl:`https://services.daisycon.com/publishers/${clientID}/media`,
                     headers: { 'accept': 'application/json',
                     'Authorization':'Bearer '+access_token },
                     method:"GET"
                 },
                 {
                     commandName:"getProducts",
-                    targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs`,
+                    targetUrl:`https://services.daisycon.com/publishers/${clientID}/programs`,
                     headers: { 'accept': 'application/json',
                     'Authorization':'Bearer '+access_token },
                     method:"GET"
@@ -614,7 +613,7 @@ async function subscribeProgram(){
     method: 'POST',
     body: JSON.stringify({
         commandName:"subscribeProgram",
-        targetUrl:`https://services.daisycon.com/publishers/${publisherID}/programs/${programID}/subscriptions/${mediaID}`,
+        targetUrl:`https://services.daisycon.com/publishers/${clientID}/programs/${programID}/subscriptions/${mediaID}`,
         headers: { 'accept': 'application/json',
         'Authorization':'Bearer '+access_token },
         method:"POST"
@@ -652,7 +651,7 @@ async function subscribeAllPrograms(){
                 },
                 {
                     commandName:"subscribeAllPrograms",
-                    body: {"publisherID":publisherID},
+                    body: {"publisherID":clientID},
                     headers: { 'Content-Type': 'application/json',
                         'accept': 'application/json',
                         'Authorization':'Bearer '+access_token },
