@@ -208,6 +208,7 @@ async function subscribeAll(){
                 dataString += `Campaign ${camp}, subscribed to sites ${sites}<br>`; 
             }
             document.getElementById('resultContainer').innerHTML = dataString;
+            dataString = dataString.replaceAll("<br>","\n");
             downloadText(dataString,"tradeTrackerSubscribeLogs_"+user);
             console.log('TradeTracker/exportOffers() success:', data);
         }
