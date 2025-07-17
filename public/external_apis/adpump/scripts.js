@@ -236,9 +236,9 @@ async function subscribeAll(){
         }
         else{
             const data = await response.json();
-            document.getElementById('resultTitle').innerHTML = "Subscribe to all offers successful for user "+user+" !";
-            document.getElementById('resultContainer').innerHTML = "Subscribed to: "+data.join(",");
             console.log('adPump/subscribeAll() success:', data);
+            document.getElementById('resultTitle').innerHTML = "Subscribe to all offers successful for user "+user+" !";
+            document.getElementById('resultContainer').innerHTML = "Subscribed to: "+data.result.join(",");
         }
     } catch (error) {
         console.error('Error:', error);
