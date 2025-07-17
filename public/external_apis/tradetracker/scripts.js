@@ -19,9 +19,9 @@ function downloadText(data,filename='data.txt'){
     const blob = new Blob([data], { type: "text/plain" });
     const link = document.createElement("a");
     link.setAttribute('href', url);
+    link.setAttribute('download', filename);
     link.style.visibility = 'hidden';
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
+
     // Trigger download
     document.body.appendChild(link);
     link.click();
