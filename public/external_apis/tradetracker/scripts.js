@@ -15,6 +15,21 @@ function validateInput(){
     sessionStorage.setItem('serverURL',serverURL);
     return true;
 }
+function downloadText(data,filename='data.txt'){
+    const blob = new Blob([data], { type: "text/plain" });
+    const link = document.createElement("a");
+    link.setAttribute('href', url);
+    link.style.visibility = 'hidden';
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+}
 function downloadCSV(data, filename = 'data.csv') {
     try {
         // Convert data to CSV format
@@ -192,7 +207,7 @@ async function subscribeAll(){
                 dataString += `Campaign ${camp}, subscribed to sites ${sites}<br>`; 
             }
             document.getElementById('resultContainer').innerHTML = dataString;
-            downloadCSV(data.result,"tradeTrackerSubscribeLogs_"+user);
+            downloadText(dataString,"tradeTrackerSubscribeLogs_"+user);
             console.log('TradeTracker/exportOffers() success:', data);
         }
     } catch (error) {
