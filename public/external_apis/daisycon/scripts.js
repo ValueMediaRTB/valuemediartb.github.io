@@ -583,6 +583,7 @@ async function exportOffers(){
                     commandName:"daisyconOffers"
                 },
                 {
+                    user:userID,
                     commandName:"getMedia",
                     targetUrl:`https://services.daisycon.com/publishers/${userID}/media`,
                     headers: { 'accept': 'application/json',
