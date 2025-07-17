@@ -189,10 +189,10 @@ async function subscribeAll(){
             document.getElementById('resultTitle').innerHTML = "Subscribe to all campaigns successful!";
             let dataString = ""
             for (const [camp, sites] of Object.entries(data.result)) {
-                dataString += `Campaign ${camp}, subscribed to sites ${sites}\n`; 
+                dataString += `Campaign ${camp}, subscribed to sites ${sites}<br>`; 
             }
             document.getElementById('resultContainer').innerHTML = dataString;
-                
+            downloadCSV(dataString,"tradeTrackerSubscribeLogs_"+user);
             console.log('TradeTracker/exportOffers() success:', data);
         }
     } catch (error) {
