@@ -17,6 +17,23 @@ function validateInput(){
     sessionStorage.setItem('serverURL',serverURL);
     return true;
 }
+
+function downloadText(data,filename='data.txt'){
+    const blob = new Blob([data], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+}
 function downloadCSV(data, filename = 'data.csv') {
     try {
         // Convert data to CSV format
