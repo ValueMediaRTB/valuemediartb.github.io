@@ -163,7 +163,9 @@ async function subscribeAll(){
                 {
                     commandName:"tradeTrackerUpdate"
                 },
-                {   user: user
+                {   
+                    commandName:"subscribeAll",
+                    user: user
                     /* replace with tradetracker commands
                     commandName:"getBrands",
                     targetUrl:`https://app.partnerboost.com/api.php?mod=medium&op=monetization_api`,
