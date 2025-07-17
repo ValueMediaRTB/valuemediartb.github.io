@@ -187,8 +187,11 @@ async function subscribeAll(){
         else{
             const data = await response.json();
             document.getElementById('resultTitle').innerHTML = "Subscribe to all campaigns successful!";
-            dataString = Object.entries(data.result).forEach(([camp, sites]) => `Campaign: ${camp}, subscribed to sites ${sites}`);
-            document.getElementById('resultContainer').innerHTML = JSON.stringify(dataString);
+            let dataString = ""
+            for (const [camp, sites] of Object.entries(data.result)) {
+                dataString += `Campaign ${camp}, subscribed to sites ${sites}\n`; 
+            }
+            document.getElementById('resultContainer').innerHTML = dataString;
                 
             console.log('TradeTracker/exportOffers() success:', data);
         }
