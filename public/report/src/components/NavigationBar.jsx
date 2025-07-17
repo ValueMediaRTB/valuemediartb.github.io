@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, ButtonGroup } from 'react-bootstrap';
 import { fetchTableData } from '../api';
 
-const NavigationBar = ({ currentDateRange }) => {
+const NavigationBar = ({ currentDateRange, onBudgetCheckerToggle, onTrackerStatsView, currentView }) => {
   const handleResetCache = async () => {
     try {
       // Call with "reset_cache" and current date
@@ -22,6 +22,20 @@ const NavigationBar = ({ currentDateRange }) => {
       // You can add more logic here if needed (e.g., refresh UI)
     } catch (error) {
       console.error('Error resetting DB:', error);
+    }
+  };
+
+  const handleTrackerStats = () => {
+    // Navigate to Tracker Stats view
+    if (onTrackerStatsView) {
+      onTrackerStatsView();
+    }
+  };
+
+  const handleBudgetChecker = () => {
+    // Navigate to Budget Checker view
+    if (onBudgetCheckerToggle) {
+      onBudgetCheckerToggle();
     }
   };
 
@@ -138,8 +152,25 @@ const NavigationBar = ({ currentDateRange }) => {
         </div>
       </div>
 
-      {/* Right side spacer to balance the layout */}
-      <div style={{ width: '140px' }}></div>
+      {/* Right side buttons */}
+      <ButtonGroup style={{ gap: '8px' }}>
+        <Button 
+          variant={currentView === 'tracker' ? 'light' : 'outline-light'}
+          size="md" 
+          onClick={handleTrackerStats}
+          style={{ whiteSpace: 'nowrap' }}
+        >
+          <i className="bi bi-bar-chart"></i> Tracker stats
+        </Button>
+        <Button 
+          variant={currentView === 'budget' ? 'light' : 'outline-light'}
+          size="md" 
+          onClick={handleBudgetChecker}
+          style={{ whiteSpace: 'nowrap' }}
+        >
+          <i className="bi bi-currency-dollar"></i> Budget checker
+        </Button>
+      </ButtonGroup>
     </nav>
   );
 };

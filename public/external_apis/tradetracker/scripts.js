@@ -148,3 +148,48 @@ async function exportOffers(){
         console.error('Error:', error);
     }
 }
+async function subscribeAll(){
+    if(!validateInput()){
+        alert('In TradeTracker/subscribeAll(): Invalid input!');
+        return;
+    }
+    try {
+        const user = document.getElementById('userSelect').value;
+        document.getElementById('resultTitle').innerHTML = "Sent subscribeAll request to server, waiting for response...";
+        const response = await fetch(`${serverURL}/update` , {
+        method: 'POST',
+        body: JSON.stringify({
+            commands : [  
+                {
+                    commandName:"tradeTrackerUpdate"
+                },
+                {   user: user
+                    /* replace with tradetracker commands
+                    commandName:"getBrands",
+                    targetUrl:`https://app.partnerboost.com/api.php?mod=medium&op=monetization_api`,
+                    headers: { 'Content-Type': 'application/json',
+                        'accept':'application/json' },
+                    method:"POST",
+                    body:{user:document.getElementById('accountInput').value}*/
+                }
+            ]
+            }),
+        headers: { 'Content-Type': 'application/json' }
+        });
+
+        // First check if the HTTP request itself succeeded
+        if (!response.ok) {
+            console.error("In TradeTracker/subscribeAll(): received error response from server");
+            document.getElementById('resultTitle').innerHTML = "TradeTracker/subscribeAll failed! Received response "+response.status;
+        }
+        else{
+            const data = await response.json();
+            document.getElementById('resultTitle').innerHTML = "Subscribe to all campaigns successful!";
+            document.getElementById('resultContainer').innerHTML = JSON.stringify(data);
+                
+            console.log('TradeTracker/exportOffers() success:', data);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}

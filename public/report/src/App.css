@@ -117,3 +117,12 @@ body {
   height: calc(100vh - 220px); /* Adjusted for compact layout */
   overflow-y: auto;
 }
+#budgetCheckerTable {
+  width: 100%;
+}
+@media (min-width: 900px) {
+  #budgetCheckerTable {
+    width: 50%;
+    left:25%;
+  }
+}
