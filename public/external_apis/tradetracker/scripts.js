@@ -192,7 +192,7 @@ async function subscribeAll(){
                 dataString += `Campaign ${camp}, subscribed to sites ${sites}<br>`; 
             }
             document.getElementById('resultContainer').innerHTML = dataString;
-            downloadCSV(dataString,"tradeTrackerSubscribeLogs_"+user);
+            downloadCSV(data.result,"tradeTrackerSubscribeLogs_"+user);
             console.log('TradeTracker/exportOffers() success:', data);
         }
     } catch (error) {
