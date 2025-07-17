@@ -17,6 +17,7 @@ function validateInput(){
 }
 function downloadText(data,filename='data.txt'){
     const blob = new Blob([data], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute('href', url);
     link.setAttribute('download', filename);
