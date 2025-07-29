@@ -1,59 +1,44 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Tab, Nav, Button, Modal, Form/*,ProgressBar*/ } from 'react-bootstrap';
+import { Tab, Nav, Button, Modal, Form } from 'react-bootstrap';
 import MainTable from './MainTable';
-import { fetchTableData } from '../api';
+import { fetchTableData, clearSortedFilteredCache } from '../api';
 
 const DEFAULT_TAB_OPTIONS = ['Campaigns', 'Zones', 'SubIDs', 'Countries', 'ISPs'];
 
-const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate }) => {
+const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate, onLoadingChange }) => {
   const [pageSize, setPageSize] = useState(50);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc'});
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [customGroups, setCustomGroups] = useState(() => {
     const savedGroups = sessionStorage.getItem('customGroups');
     return savedGroups ? JSON.parse(savedGroups) : [];
   });
   const [showGroupModal, setShowGroupModal] = useState(false);
-  const [tableData, setTableData] = useState([]);
+  const [serverPageData, setServerPageData] = useState([]);
   const [serverTotals, setServerTotals] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [loadingMessage, setLoadingMessage] = useState('');
+  const [serverPaginationInfo, setServerPaginationInfo] = useState({
+    currentServerPage: 1,
+    totalServerPages: 1,
+    totalRecords: 0,
+    isPaginated: false,
+    sessionId: null
+  });
   const [newGroup, setNewGroup] = useState({
     option1: 'None',
     option2: 'None'
   });
 
-  // Calculate totals and averages if not received from server
-  /*
-  const clientTotals = useMemo(() => {
-    if (!tableData.length) return null;
-    
-    const numericColumns = ['clicks', 'conversions', 'cost', 'profit', 'revenue'];
-    const avgColumns = ['cpc', 'epc', 'cr'];
-    
-    const result = { id: 'Totals', name: 'Totals' };
-    
-    // Sum numeric columns
-    numericColumns.forEach(col => {
-      result[col] = tableData.reduce((sum, row) => sum + (row[col] || 0), 0);
-    });
-    
-    // Calculate averages
-    avgColumns.forEach(col => {
-      const sum = tableData.reduce((sum, row) => sum + (row[col] || 0), 0);
-      result[col] = tableData.length ? (sum / tableData.length).toFixed(2) : 0;
-    });
-    
-    return result;
-  }, [tableData]);*/
-
-  const totals = serverTotals;
-
   // Save custom groups to sessionStorage whenever they change
   useEffect(() => {
     sessionStorage.setItem('customGroups', JSON.stringify(customGroups));
   }, [customGroups]);
+
+  // Notify parent component about loading state
+  useEffect(() => {
+    if (onLoadingChange) {
+      onLoadingChange(isLoading);
+    }
+  }, [isLoading, onLoadingChange]);
 
   const handleDeleteGroup = (groupName, e) => {
     e.stopPropagation();
@@ -65,64 +50,75 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!activeTab || !dateRange.start || !dateRange.end || isLoading) return;
+  // Fetch a specific server page
+  const fetchServerPage = async (serverPageNumber) => {
+    if (!activeTab || !dateRange.start || !dateRange.end || isLoading) return;
+    
+    setIsLoading(true);
+    try {
+      console.log(`Fetching server page ${serverPageNumber} for ${activeTab}`);
       
-      setIsLoading(true);
-      try {
-        setLoadingProgress(20);
-        setLoadingMessage('Sending request...');
-        const response = await fetchTableData(activeTab, dateRange, filters);
-        setLoadingProgress(70);
-        setLoadingMessage('Processing data...');
-        let data = response.data || response;
-
-        const totals = response.totals || null;
-        // Set server totals
-        setServerTotals(totals);
-
-        //if a group is selected, display 'primary_value' and 'secondary_value' values in key columns
-        if (customGroups.some(group => group.name === activeTab)) {
-          const group = customGroups.find(g => g.name === activeTab);
-          data = data.map(item => ({
-            [group.options[0].toLowerCase()]: item.primary_value || "",
-            [group.options[1].toLowerCase()]: item.secondary_value || "",
-            ...item
-          }));
-        }
-        setTableData(data);
-        setLoadingProgress(90);
-        setLoadingMessage(`Loaded ${data.length} records successfully`);
-        // Clear loading state after a brief delay to show completion
-        setTimeout(() => {
-          setLoadingProgress(100);
-          setTimeout(() => {
-            setIsLoading(false);
-            setLoadingProgress(0);
-            setLoadingMessage('');
-          }, 500);
-        }, 200);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setTableData([]);
-        setServerTotals(null);
-        setLoadingMessage('Error loading data')
-        setIsLoading(false);
-        setLoadingProgress(0);
+      const response = await fetchTableData(
+        activeTab,
+        dateRange,
+        filters,
+        sortConfig,
+        serverPageNumber
+      );
+      
+      let data = response.data || [];
+      const totals = response.totals || null;
+      
+      // Handle custom groups
+      if (customGroups.some(group => group.name === activeTab)) {
+        const group = customGroups.find(g => g.name === activeTab);
+        data = data.map(item => ({
+          [group.options[0].toLowerCase()]: item.pv || "",
+          [group.options[1].toLowerCase()]: item.sv || "",
+          ...item
+        }));
       }
-    };
+      
+      // Only update if we're still on the same tab
+      if (activeTab === activeTab) {
+        setServerPageData(data);
+        setServerTotals(totals);
+        setServerPaginationInfo({
+          currentServerPage: response.currentServerPage || serverPageNumber,
+          totalServerPages: response.totalServerPages || 1,
+          totalRecords: response.totalRecords || data.length,
+          isPaginated: response.isPaginated || false,
+          sessionId: response.sessionId || null
+        });
+      }
+      
+      console.log(`Loaded server page ${serverPageNumber}: ${data.length} records`);
+      
+    } catch (error) {
+      console.error("Error fetching server page:", error);
+      setServerPageData([]);
+      setServerTotals(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchData();
-  }, [activeTab, dateRange, filters]);
+  // Initial load when tab changes
+  useEffect(() => {
+    if (activeTab && dateRange.start && dateRange.end) {
+      // Always start with server page 1 when tab changes
+      clearSortedFilteredCache(activeTab, dateRange);
+      fetchServerPage(1);
+    }
+  }, [activeTab, dateRange, filters, sortConfig]);
 
   const allTabs = [...DEFAULT_TAB_OPTIONS, ...customGroups.map(g => g.name)];
 
   const handleTabSelect = (tab) => {
     if (dateRange.start && dateRange.end && !isLoading) {
+      
       setActiveTab(tab);
-      setCurrentPage(1);
-      setSortConfig({ key: null, direction: 'asc'});
+      setSortConfig({ key: null, direction: 'asc' });
     }
   };
 
@@ -163,37 +159,55 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
   };
 
   const handleSort = (key) => {
-    setSortConfig(prev => ({
-      key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
-    setCurrentPage(1);
+    const newDirection = sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc';
+    clearSortedFilteredCache(activeTab,dateRange);
+    setSortConfig({ key, direction: newDirection });
+  };
+
+  // Handle server page request from MainTable
+  const handleServerPageRequest = (serverPageNumber) => {
+    console.log(`MainTable requested server page ${serverPageNumber}`);
+    fetchServerPage(serverPageNumber);
   };
 
   // Dynamic columns based on active tab
   const columns = useMemo(() => {
-    // Handle custom groups as before
     const customGroup = customGroups.find(group => group.name === activeTab);
-    if (tableData.length > 0) {
-      // Dynamic columns based on first row of data
-      const firstRow = tableData[0];
-      let headers = Object.keys(firstRow).map(key => ({
-        key,
-        label: key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' '), // Better label formatting
-        sortable: true,
-        numeric: typeof firstRow[key] === 'number'
-      }));
+    const columnLabelMap = {
+      'cl': 'Clicks',
+      'cv': 'Conversions', 
+      'rev': 'Revenue',
+      'pft': 'Profit',
+      'cpc': 'CPC',
+      'epc': 'EPC',
+      'cr': 'CR',
+      'roi': 'ROI'
+    };
+    
+    if (serverPageData.length > 0) {
+      const firstRow = serverPageData[0];
+      let headers = Object.keys(firstRow).map(key => {
+        const label = columnLabelMap[key] || 
+                     key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+        
+        return {
+          key,
+          label,
+          sortable: true,
+          numeric: typeof firstRow[key] === 'number'
+        };
+      });
+      
       headers = headers.filter(header => header.key !== 'date');
       if (customGroup) {
         headers = headers.filter(header => 
-          header.key !== 'primary_type' && 
-          header.key !== 'secondary_type' && 
-          header.key !== 'primary_value' && 
-          header.key !== 'secondary_value'
+          header.key !== 'pt' && 
+          header.key !== 'st' && 
+          header.key !== 'pv' && 
+          header.key !== 'sv'
         );
       }
       
-      // Update available columns for the DateRangeSelector
       if (onColumnsUpdate) {
         onColumnsUpdate(headers);
       }
@@ -201,12 +215,17 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
       return headers;
     }
 
-    // Fallback: show minimal if no data yet
     return [
       { key: 'id', label: 'ID', sortable: true },
       { key: 'name', label: 'Name', sortable: true }
     ];
-  }, [activeTab, customGroups, tableData, onColumnsUpdate]);
+  }, [activeTab, customGroups, serverPageData]);
+
+  useEffect(() => {
+    if (onColumnsUpdate && columns.length > 0) {
+      onColumnsUpdate(columns);
+    }
+  }, [columns, onColumnsUpdate]);
 
   return (
     <div className="px-3" style={{ position: 'relative' }}>
@@ -217,7 +236,7 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
               <Nav.Link 
                 eventKey={tab}
                 onClick={() => handleTabSelect(tab)}
-                disabled={!dateRange.start || !dateRange.end  || isLoading}
+                disabled={!dateRange.start || !dateRange.end || isLoading}
               >
                 {tab}
               </Nav.Link>
@@ -228,7 +247,7 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
               <Nav.Link 
                 eventKey={group.name}
                 onClick={() => handleTabSelect(group.name)}
-                disabled={!dateRange.start || !dateRange.end  || isLoading}
+                disabled={!dateRange.start || !dateRange.end || isLoading}
                 style={{ 
                   display: 'flex', 
                   alignItems: 'center',
@@ -250,7 +269,7 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
                     border: 'none',
                     background: 'none'
                   }}
-                  disabled={!dateRange.start || !dateRange.end  || isLoading}
+                  disabled={!dateRange.start || !dateRange.end || isLoading}
                 >
                   ×
                 </Button>
@@ -262,41 +281,30 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
         <Button 
           variant="outline-primary" 
           onClick={handleCreateGroup}
-          disabled={!dateRange.start || !dateRange.end ||isLoading}
-          className="ms-2 mt-1"
+          disabled={!dateRange.start || !dateRange.end || isLoading}
+          className="ms-1 mt-1"
           style={{ whiteSpace: 'nowrap' }}
         >
           Create Group
         </Button>
       </div>
-      {/* Loading Progress Bar */}
-      {/*isLoading && (
-        <div className="mt-2 mb-2">
-          <div className="d-flex justify-content-between align-items-center mb-1">
-            <small className="text-muted">{loadingMessage}</small>
-            <small className="text-muted">{loadingProgress.toFixed(0)}%</small>
-          </div>
-          <ProgressBar 
-            now={loadingProgress} 
-            variant={loadingProgress < 30 ? "info" : loadingProgress < 70 ? "warning" : "success"}
-            style={{ height: '4px' }}
-          />
-        </div>
-      )*/}
 
       {activeTab && (
         <div className="mt-1" style={{ position: 'relative' }}>
           <MainTable
-            data={tableData}
+            serverPageData={serverPageData}
             columns={columns}
             sortConfig={sortConfig}
             onSort={handleSort}
-            initialPageSize={pageSize}
+            pageSize={pageSize}
+            onPageSizeChange={setPageSize}
             isLoading={isLoading}
-            totals={totals}
+            totals={serverTotals}
             filters={filters}
             activeTab={activeTab}
             dateRange={dateRange}
+            serverPaginationInfo={serverPaginationInfo}
+            onServerPageRequest={handleServerPageRequest}
             stickyHeader
             stickyPagination
           />

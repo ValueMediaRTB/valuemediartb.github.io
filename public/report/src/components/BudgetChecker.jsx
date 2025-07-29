@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Table, Spinner } from 'react-bootstrap';
+import {fetchTableData} from '../api.js'
 
 const BudgetChecker = () => {
   const [budgetData, setBudgetData] = useState([]);
@@ -17,6 +18,8 @@ const BudgetChecker = () => {
   const fetchBudgetData = async () => {
     setIsLoading(true);
     try {
+        const {data:apiData,totals:apiTotals} = await fetchTableData("budget",{start:new Date(),end:new Date()},[{type:'suppliers',value:'All'}]);
+        /*
       // Replace this with your actual API call
       // const response = await fetch('/api/budget-data');
       // const data = await response.json();
@@ -33,8 +36,8 @@ const BudgetChecker = () => {
         { supplierName: 'TikTok Ads', remainingBudget: 5500.30 },
         { supplierName: 'Snapchat Ads', remainingBudget: 2750.80 }
       ];
-      
-      setBudgetData(mockData);
+      */
+      setBudgetData(apiData);
     } catch (error) {
       console.error('Error fetching budget data:', error);
       setBudgetData([]);
@@ -61,26 +64,26 @@ const BudgetChecker = () => {
     <div className="px-3 py-2">
       <div className="d-flex align-items-center mb-2 pb-2 border-bottom">
         <div 
-          className="me-3 d-flex align-items-center justify-content-center"
+          className="me-2 d-flex align-items-center justify-content-center"
           style={{
-            width: '32px',
-            height: '32px',
+            width: '28px',
+            height: '28px',
             background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
             borderRadius: '6px',
             color: 'white',
-            fontSize: '18px',
+            fontSize: '16px',
             fontWeight: 'bold'
           }}
         >
           $
         </div>
-        <h4 className="mb-0" style={{ color: '#495057', fontWeight: '600' }}>
+        <h5 className="mb-0" style={{ color: '#495057', fontWeight: '600' }}>
           Budget Checker
-        </h4>
+        </h5>
       </div>
       
       {/* Button Row */}
-      <div className="mb-3 pb-2 border-bottom">
+      <div className="mb-1 pb-2 border-bottom">
         <Button 
           variant="primary"
           onClick={fetchBudgetData}
@@ -148,14 +151,14 @@ const BudgetChecker = () => {
               budgetData.map((item, index) => (
                 <tr key={index}>
                   <td style={{ fontSize: '0.875rem' }}>
-                    {item.supplierName}
+                    {item ? item.supplierName[0].toUpperCase() + item.supplierName.slice(1) : ''}
                   </td>
                   <td style={{ 
                     textAlign: 'right',
                     fontSize: '0.875rem',
-                    ...getBudgetStyle(item.remainingBudget)
+                    ...getBudgetStyle(item.budgetRemaining)
                   }}>
-                    {formatMoney(item.remainingBudget)}
+                    {formatMoney(item.budgetRemaining)}
                   </td>
                 </tr>
               ))
@@ -182,7 +185,7 @@ const BudgetChecker = () => {
             <div className="col-md-4">
               <div className="fw-bold text-success mb-1">Total Budget</div>
               <div className="fs-5">
-                {formatMoney(budgetData.reduce((sum, item) => sum + item.remainingBudget, 0))}
+                {formatMoney(budgetData.reduce((sum, item) => sum + Number(item.budgetRemaining), 0))}
               </div>
             </div>
             <div className="col-md-4">

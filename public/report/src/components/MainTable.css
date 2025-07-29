@@ -55,25 +55,26 @@
   top: 0;
   background: white;
   z-index: 0;
-  padding: 0.5rem 0.75rem !important; /* Reduced padding */
-  font-size: 0.8rem !important;
+  padding: 0.3rem 0.6rem !important; /* Further reduced padding */
+  font-size: 0.85rem !important; /* Slightly bigger font */
   font-weight: 600 !important;
   border-bottom: 2px solid #dee2e6 !important;
   white-space: nowrap;
+  line-height: 1.2 !important; /* Slightly more relaxed line height */
 }
 
-/* Compact table cells */
+/* Ultra compact table cells */
 .table td {
-  padding: 0.4rem 0.75rem !important; /* Reduced padding */
-  font-size: 0.875rem !important;
-  line-height: 1.3 !important;
+  padding: 0.25rem 0.6rem !important; /* Further reduced padding */
+  font-size: 0.875rem !important; /* Bigger font - back to original size */
+  line-height: 1.2 !important; /* Slightly more relaxed line height */
   vertical-align: middle !important;
   border-bottom: 1px solid #dee2e6 !important;
 }
 
-/* Compact table rows */
+/* Ultra compact table rows */
 .table tbody tr {
-  height: 36px !important; /* Fixed compact height */
+  height: 28px !important; /* Reduced from 36px to 28px */
 }
 
 /* Hover effects */

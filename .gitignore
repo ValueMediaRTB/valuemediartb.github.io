@@ -4,5 +4,6 @@
 /app.js
 /daisyconOffers.csv
 /TODO.txt
-/backend/
 /Design/
+/backend/node_modules
+/public/report/node_modules

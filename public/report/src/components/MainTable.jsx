@@ -1,188 +1,168 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { Table, Pagination, Form, Button } from 'react-bootstrap';
+import { Table, Pagination, Form, Button, Spinner } from 'react-bootstrap';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import config from '../config';
 import './MainTable.css';
 
 const MainTable = ({ 
-  data = [], 
+  serverPageData = [], 
   columns = [],   
   sortConfig,
   onSort,
   pageSize: initialPageSize = 50,
   onPageSizeChange,
-  onPageChange,
   isLoading,
   filters = [], 
   totals = null, 
   activeTab = '', 
-  dateRange = null 
+  dateRange = null,
+  serverPaginationInfo = {},
+  onServerPageRequest,
+  dataVersion = 0,
+  stickyHeader,
+  stickyPagination
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(initialPageSize);
   const [manualPageInput, setManualPageInput] = useState('');
+  const [requestedPage, setRequestedPage] = useState(null); // Track the page we're trying to navigate to
   const tableRef = useRef(null);
   const [columnWidths, setColumnWidths] = useState([]);
 
-  // DEBUG: Log totals information
-  console.log('MainTable DEBUG - totals:', totals);
-  console.log('MainTable DEBUG - totals type:', typeof totals);
-  console.log('MainTable DEBUG - has totals data:', !!(totals && typeof totals === 'object' && Object.keys(totals).length > 0));
+  const {
+    currentServerPage = 1,
+    totalServerPages = 1,
+    totalRecords = 0,
+    isPaginated = false,
+    sessionId = null
+  } = serverPaginationInfo;
 
-  // Apply client-side filtering (exclude traffic_source as it's handled server-side)
-  const filteredData = useMemo(() => {
-    const clientFilters = filters.filter(filter => filter.type !== 'traffic_source');
+  // Reset to page 1 only when filters or sort changes, not when server page data changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setRequestedPage(null);
+  }, [filters, sortConfig]);
+
+  // Calculate total pages based on total records and page size
+  const totalPages = useMemo(() => {
+    if (!isPaginated) {
+      return Math.ceil(serverPageData.length / pageSize) || 1;
+    }
+    // For paginated data, calculate based on total records
+    return Math.ceil(totalRecords / pageSize) || 1;
+  }, [isPaginated, totalRecords, serverPageData.length, pageSize]);
+
+  // Calculate which server page contains a specific record
+  const getServerPageForRecord = (recordIndex) => {
+    if (!isPaginated) return 1;
     
-    if (clientFilters.length === 0) return data;
-    
-    return data.filter(row => {
-      return clientFilters.every(filter => {
-        const value = row[filter.type];
-        const filterValue = filter.value?.toString().toLowerCase().trim();
-        const operator = filter.operator || '=';
-        
-        if (!filterValue) return true; // Skip empty filters
-        
-        // Handle numeric filtering
-        if (typeof value === 'number') {
-          const numericFilterValue = parseFloat(filterValue);
-          if (isNaN(numericFilterValue)) return true; // Skip invalid numeric filters
-          
-          switch (operator) {
-            case '<':
-              return value < numericFilterValue;
-            case '>':
-              return value > numericFilterValue;
-            case '=':
-            default:
-              return Math.abs(value - numericFilterValue) < 0.000001; // Handle floating point comparison
-          }
-        }
-        
-        // Handle string filtering (contains match, case insensitive)
-        const stringValue = String(value || '').toLowerCase();
-        
-        // For traffic_source-like filters that might have comma-separated values
-        if (filterValue.includes(',')) {
-          const filterValues = filterValue.split(',').map(v => v.trim()).filter(v => v);
-          return filterValues.some(fv => stringValue.includes(fv));
-        }
-        
-        return stringValue.includes(filterValue);
-      });
-    });
-  }, [data, filters]);
+    // Calculate records per server page based on actual data
+    const recordsPerServerPage = Math.ceil(totalRecords / totalServerPages);
+    return Math.floor(recordIndex / recordsPerServerPage) + 1;
+  };
 
-  const sortedData = useMemo(() => {
-    if (!sortConfig?.key) return filteredData;
-    return [...filteredData].sort((a, b) => {
-      const aValue = a[sortConfig.key];
-      const bValue = b[sortConfig.key];
-      const aIsNumber = typeof aValue === 'number';
-      const bIsNumber = typeof bValue === 'number';
-
-      if (aIsNumber && bIsNumber) {
-        return sortConfig.direction === 'asc'
-          ? aValue - bValue
-          : bValue - aValue;
+  // When server page changes and we have a requested page, navigate to it
+  useEffect(() => {
+    if (requestedPage && serverPageData.length > 0) {
+      const globalStartIndex = (requestedPage - 1) * pageSize;
+      const neededServerPage = getServerPageForRecord(globalStartIndex);
+      
+      console.log(`Checking if we can navigate to requested page ${requestedPage}. Needed server page: ${neededServerPage}, Current server page: ${currentServerPage}`);
+      
+      if (neededServerPage === currentServerPage) {
+        // We now have the correct server page, update current page
+        console.log(`Server page matches! Navigating to page ${requestedPage}`);
+        setCurrentPage(requestedPage);
+        setRequestedPage(null);
       }
+    }
+  }, [serverPageData, currentServerPage, requestedPage, pageSize, totalRecords, totalServerPages, isPaginated]);
 
-      return sortConfig.direction === 'asc'
-        ? String(aValue || '').localeCompare(String(bValue || ''))
-        : String(bValue || '').localeCompare(String(aValue || ''));
-    });
-  }, [filteredData, sortConfig]);
+  // Add a backup effect that triggers on currentServerPage change
+  useEffect(() => {
+    if (requestedPage && currentServerPage > 0) {
+      const globalStartIndex = (requestedPage - 1) * pageSize;
+      const neededServerPage = getServerPageForRecord(globalStartIndex);
+      
+      if (neededServerPage === currentServerPage && serverPageData.length > 0) {
+        console.log(`Server page changed to ${currentServerPage}, navigating to requested page ${requestedPage}`);
+        setCurrentPage(requestedPage);
+        setRequestedPage(null);
+      }
+    }
+  }, [currentServerPage]);
 
+  // Get current page data from server page
   const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    return sortedData.slice(startIndex, startIndex + pageSize);
-  }, [sortedData, currentPage, pageSize]);
+    if (!isPaginated) {
+      // For non-paginated data, simple slice
+      const startIndex = (currentPage - 1) * pageSize;
+      return serverPageData.slice(startIndex, startIndex + pageSize);
+    }
 
-  const totalPages = Math.ceil(sortedData.length / pageSize);
+    // For paginated data, calculate if we have the right server page
+    const globalStartIndex = (currentPage - 1) * pageSize;
+    const neededServerPage = getServerPageForRecord(globalStartIndex);
+    
+    // If we don't have the right server page, return empty
+    if (neededServerPage !== currentServerPage) {
+      console.log(`Waiting for server page ${neededServerPage}, current is ${currentServerPage}`);
+      return [];
+    }
+    
+    // Calculate the offset within the current server page
+    const recordsPerServerPage = Math.ceil(totalRecords / totalServerPages);
+    const serverPageStartIndex = (currentServerPage - 1) * recordsPerServerPage;
+    const localStartIndex = globalStartIndex - serverPageStartIndex;
+    const localEndIndex = Math.min(localStartIndex + pageSize, serverPageData.length);
+    
+    // Ensure indices are valid
+    if (localStartIndex < 0 || localStartIndex >= serverPageData.length) {
+      console.warn(`Invalid local indices: start=${localStartIndex}, serverPageData.length=${serverPageData.length}`);
+      return [];
+    }
+    
+    return serverPageData.slice(localStartIndex, localEndIndex);
+  }, [
+    serverPageData, 
+    currentPage, 
+    pageSize, 
+    isPaginated, 
+    totalRecords, 
+    totalServerPages, 
+    currentServerPage
+  ]);
 
-  // Enhanced column width measurement with better timing and reliability
+  // Enhanced column width measurement
   useEffect(() => {
     const measureColumnWidths = () => {
       if (!tableRef.current || columns.length === 0) return;
       
-      // Find all header cells
       const headerCells = tableRef.current.querySelectorAll('thead th');
       if (headerCells.length === 0) return;
       
-      // Measure each column width more accurately
-      const widths = Array.from(headerCells).map((cell, index) => {
+      const widths = Array.from(headerCells).map((cell) => {
         const rect = cell.getBoundingClientRect();
-        const computedStyle = window.getComputedStyle(cell);
-        
-        // Get the full width including padding and borders
-        const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
-        const paddingRight = parseFloat(computedStyle.paddingRight) || 0;
-        const borderLeft = parseFloat(computedStyle.borderLeftWidth) || 0;
-        const borderRight = parseFloat(computedStyle.borderRightWidth) || 0;
-        
-        const totalWidth = rect.width;
-        
-        console.log(`Column ${index} (${columns[index]?.key}): ${totalWidth}px`);
-        return Math.round(totalWidth);
+        return Math.round(rect.width);
       });
       
-      // Only update if we have valid measurements and they've changed
       if (widths.length === columns.length && widths.every(w => w > 0)) {
-        setColumnWidths(prevWidths => {
-          const hasChanged = prevWidths.length !== widths.length || 
-                           prevWidths.some((w, i) => Math.abs(w - widths[i]) > 1);
-          
-          if (hasChanged) {
-            console.log('Column widths updated:', widths);
-            return widths;
-          }
-          return prevWidths;
-        });
+        setColumnWidths(widths);
       }
     };
 
-    // Multiple measurement attempts with different timings to ensure accuracy
     const timeouts = [
-      setTimeout(measureColumnWidths, 10),   // Very quick first attempt
-      setTimeout(measureColumnWidths, 50),   // Early measurement
-      setTimeout(measureColumnWidths, 150),  // After render settles
-      setTimeout(measureColumnWidths, 300),  // Fallback measurement
-      setTimeout(measureColumnWidths, 600)   // Final fallback
+      setTimeout(measureColumnWidths, 10),
+      setTimeout(measureColumnWidths, 50),
+      setTimeout(measureColumnWidths, 150),
+      setTimeout(measureColumnWidths, 300)
     ];
 
-    // Also measure on window resize
-    const handleResize = () => {
-      clearTimeout(resizeTimeout);
-      const resizeTimeout = setTimeout(measureColumnWidths, 100);
-    };
-    
-    window.addEventListener('resize', handleResize);
-
-    // Cleanup function
     return () => {
       timeouts.forEach(clearTimeout);
-      window.removeEventListener('resize', handleResize);
     };
-  }, [columns, paginatedData, activeTab, data.length]); // Include activeTab and data.length as dependencies
-
-  // Force re-measurement when tab changes or data structure changes significantly
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (tableRef.current && columns.length > 0) {
-        const headerCells = tableRef.current.querySelectorAll('thead th');
-        if (headerCells.length > 0) {
-          const widths = Array.from(headerCells).map(cell => {
-            return Math.round(cell.getBoundingClientRect().width);
-          });
-          setColumnWidths(widths);
-          console.log('Force-measured column widths for tab change:', widths);
-        }
-      }
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, [activeTab]);
+  }, [columns, paginatedData, activeTab, serverPageData.length]);
 
   const requestSort = (key) => {
     if (!onSort) return;
@@ -197,7 +177,33 @@ const MainTable = ({
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
+      console.log(`Changing to page ${page} of ${totalPages}`);
+      
+      // For paginated data, check if we need a different server page
+      if (isPaginated) {
+        const globalStartIndex = (page - 1) * pageSize;
+        const neededServerPage = getServerPageForRecord(globalStartIndex);
+        
+        console.log(`Page ${page} needs server page ${neededServerPage}, current server page is ${currentServerPage}`);
+        
+        if (neededServerPage !== currentServerPage) {
+          // We need to fetch a different server page
+          console.log(`Requesting server page ${neededServerPage}`);
+          setRequestedPage(page);
+          
+          // Directly request the server page
+          if (onServerPageRequest && neededServerPage <= totalServerPages) {
+            onServerPageRequest(neededServerPage);
+          }
+        } else {
+          // We have the data, just update the page
+          setCurrentPage(page);
+        }
+      } else {
+        // Non-paginated, just update the page
+        setCurrentPage(page);
+      }
+      
       setManualPageInput('');
     }
   };
@@ -205,18 +211,21 @@ const MainTable = ({
   const handleManualPageSubmit = (e) => {
     e.preventDefault();
     const page = parseInt(manualPageInput);
+    
     if (!isNaN(page) && page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
+      handlePageChange(page);
+    } else {
       setManualPageInput('');
+      if (!isNaN(page)) {
+        alert(`Page must be between 1 and ${totalPages}`);
+      }
     }
   };
 
-  const exportToXLSX = () => {
-    // Generate filename components
+  const exportToXLSX = async () => {
     const reportId = config.reportId;
     const tabOrGroupName = activeTab || 'data';
     
-    // Format date range
     let timePeriod = '';
     if (dateRange && dateRange.start && dateRange.end) {
       const startDate = format(dateRange.start, 'yyyy-MM-dd');
@@ -226,45 +235,28 @@ const MainTable = ({
       timePeriod = format(new Date(), 'yyyy-MM-dd');
     }
     
-    // Format current filters
     let currentFilters = '';
     if (filters && filters.length > 0) {
       const filterStrings = filters.map(filter => {
         const operator = filter.operator && filter.operator !== '=' ? filter.operator : '';
-        const value = String(filter.value).replace(/[^a-zA-Z0-9]/g, ''); // Remove special characters
+        const value = String(filter.value).replace(/[^a-zA-Z0-9]/g, '');
         return `${filter.type}${operator}${value}`;
       });
       currentFilters = '_' + filterStrings.join('_');
     }
     
-    // Construct filename
     const filename = `report_${reportId}_${tabOrGroupName}_${timePeriod}${currentFilters}.xlsx`;
     
-    // Prepare data for export
-    const exportData = filteredData.map(row => {
+    // Note: This will only export the current server page data
+    const exportData = serverPageData.map(row => {
       const exportRow = {};
       columns.forEach(col => {
         let value = row[col.key];
-        
-        // Format values for export (remove currency symbols and percentages for cleaner data)
-        if (typeof value === 'number') {
-          if (['cost', 'profit', 'revenue', 'cpc', 'epc'].includes(col.key)) {
-            exportRow[col.label] = value; // Keep as number for Excel
-          } else if (['roi'].includes(col.key)) {
-            exportRow[col.label] = value; // Keep as number, Excel can format as percentage
-          } else if (['cr'].includes(col.key)) {
-            exportRow[col.label] = value;
-          } else {
-            exportRow[col.label] = value;
-          }
-        } else {
-          exportRow[col.label] = value;
-        }
+        exportRow[col.label] = value;
       });
       return exportRow;
     });
     
-    // Add totals row if available
     if (totals && typeof totals === 'object' && Object.keys(totals).length > 0) {
       const totalsRow = {};
       columns.forEach(col => {
@@ -279,20 +271,15 @@ const MainTable = ({
       exportData.push(totalsRow);
     }
     
-    // Create workbook and worksheet
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     
-    // Auto-size columns
     const colWidths = columns.map(col => ({
-      wch: Math.max(col.label.length, 15) // Minimum width of 15 characters
+      wch: Math.max(col.label.length, 15)
     }));
     worksheet['!cols'] = colWidths;
     
-    // Add worksheet to workbook
     XLSX.utils.book_append_sheet(workbook, worksheet, activeTab || 'Data');
-    
-    // Save file
     XLSX.writeFile(workbook, filename);
     config.reportId += 1;
   };
@@ -300,13 +287,13 @@ const MainTable = ({
   const formatCellValue = (value, key, precision) => {
     if (typeof value === 'number') {
       if (['cost', 'profit', 'revenue'].includes(key)) {
-        return `$${value.toLocaleString('en-US', { minimumFractionDigits: precision, maximumFractionDigits: precision })}`;
+        return `${value.toLocaleString('en-US', { minimumFractionDigits: precision, maximumFractionDigits: precision })}`;
       }
       if (['cr'].includes(key)) {
         return value.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 });
       }
       if (['cpc','epc'].includes(key)) {
-        return `$${value.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 })}`;
+        return `${value.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 })}`;
       }
       if (['roi'].includes(key)) {
         return `${value.toFixed(2)}%`;
@@ -318,13 +305,13 @@ const MainTable = ({
   const getRoiCellStyle = (value, key) => {
     if (key === 'roi' && typeof value === 'number') {
       if (value < 0) {
-        return { backgroundColor: '#ffebee', color: '#c62828' }; // Light red background, dark red text
+        return { backgroundColor: '#ffebee', color: '#c62828' };
       } else if (value >= 0 && value < 100) {
-        return { backgroundColor: '#fff3e0', color: '#ef6c00' }; // Light orange background, dark orange text
+        return { backgroundColor: '#fff3e0', color: '#ef6c00' };
       } else if (value >= 100 && value < 300) {
-        return { backgroundColor: '#e8f5e8', color: '#2e7d32' }; // Light green background, dark green text
+        return { backgroundColor: '#e8f5e8', color: '#2e7d32' };
       } else if (value >= 300) {
-        return { backgroundColor: '#c8e6c9', color: '#1b5e20' }; // Medium green background, darker green text
+        return { backgroundColor: '#c8e6c9', color: '#1b5e20' };
       }
     }
     return {};
@@ -334,6 +321,8 @@ const MainTable = ({
     const items = [];
     const maxVisible = 5;
     
+    if (totalPages <= 0) return items;
+    
     if (totalPages <= maxVisible + 2) {
       for (let i = 1; i <= totalPages; i++) {
         items.push(
@@ -341,6 +330,7 @@ const MainTable = ({
             key={i}
             active={i === currentPage}
             onClick={() => handlePageChange(i)}
+            disabled={isLoading}
           >
             {i}
           </Pagination.Item>
@@ -352,13 +342,14 @@ const MainTable = ({
           key={1}
           active={1 === currentPage}
           onClick={() => handlePageChange(1)}
+          disabled={isLoading}
         >
           1
         </Pagination.Item>
       );
       
       if (currentPage > 4) {
-        items.push(<Pagination.Ellipsis key="start-ellipsis" />);
+        items.push(<Pagination.Ellipsis key="start-ellipsis" disabled={isLoading} />);
       }
       
       const start = Math.max(2, Math.min(currentPage - 1, totalPages - 3));
@@ -370,6 +361,7 @@ const MainTable = ({
             key={i}
             active={i === currentPage}
             onClick={() => handlePageChange(i)}
+            disabled={isLoading}
           >
             {i}
           </Pagination.Item>
@@ -377,7 +369,7 @@ const MainTable = ({
       }
       
       if (currentPage < totalPages - 3) {
-        items.push(<Pagination.Ellipsis key="end-ellipsis" />);
+        items.push(<Pagination.Ellipsis key="end-ellipsis" disabled={isLoading} />);
       }
       
       if (totalPages > 1) {
@@ -386,6 +378,7 @@ const MainTable = ({
             key={totalPages}
             active={totalPages === currentPage}
             onClick={() => handlePageChange(totalPages)}
+            disabled={isLoading}
           >
             {totalPages}
           </Pagination.Item>
@@ -396,21 +389,35 @@ const MainTable = ({
     return items;
   };
 
-  // Reset to first page when filters change
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [filters]);
-
   // Check if we should render totals
   const shouldRenderTotals = totals && typeof totals === 'object' && Object.keys(totals).length > 0;
-  console.log('Should render totals:', shouldRenderTotals);
 
-  if (isLoading) {
+  // Calculate display range
+  const startRecord = isPaginated 
+    ? (currentPage - 1) * pageSize + 1
+    : Math.min((currentPage - 1) * pageSize + 1, serverPageData.length);
+  
+  const endRecord = isPaginated
+    ? Math.min(currentPage * pageSize, totalRecords)
+    : Math.min(currentPage * pageSize, serverPageData.length);
+
+  // Show loading when we're waiting for a new server page
+  const isWaitingForServerPage = requestedPage !== null && paginatedData.length === 0;
+
+  if (isLoading || isWaitingForServerPage) {
     return (
       <div className="text-center py-5">
         <div className="spinner-border" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
+        {isPaginated && (
+          <div className="mt-2">
+            {isWaitingForServerPage 
+              ? `Loading data for page ${requestedPage}...`
+              : `Loading server page ${currentServerPage} of ${totalServerPages}...`
+            }
+          </div>
+        )}
       </div>
     );
   }
@@ -443,9 +450,10 @@ const MainTable = ({
           <tbody className="table-body-scroll">
             {paginatedData.length > 0 ? (
               paginatedData.map((row, index) => (
-                <tr key={row.id || index}>
+                <tr key={row.id || `${currentPage}-${index}`}>
                   {columns.map(column => (
-                    <td key={`${row.id || index}-${column.key}`} style={getRoiCellStyle(row[column.key], column.key)}>
+                    <td key={`${row.id || `${currentPage}-${index}`}-${column.key}`} 
+                        style={getRoiCellStyle(row[column.key], column.key)}>
                       {formatCellValue(row[column.key], column.key, 2)}
                     </td>
                   ))}
@@ -454,44 +462,51 @@ const MainTable = ({
             ) : (
               <tr>
                 <td colSpan={columns.length} className="text-center py-4">
-                  No data available
+                  {isLoading ? (
+                    <>
+                      <Spinner animation="border" size="sm" className="me-2" />
+                      Loading data...
+                    </>
+                  ) : (
+                    'No data available'
+                  )}
                 </td>
               </tr>
             )}
           </tbody>
           {shouldRenderTotals && (
-  <tfoot>
-    <tr>
-      {columns.map((column, index) => {
-        let cellContent = '';
+            <tfoot>
+              <tr>
+                {columns.map((column, index) => {
+                  let cellContent = '';
 
-        if (index === 0) {
-          cellContent = 'TOTALS';
-        } else if (column.key === 'name') {
-          cellContent = '';
-        } else if (Object.prototype.hasOwnProperty.call(totals, column.key)) {
-          cellContent = formatCellValue(totals[column.key], column.key, 2);
-        }
+                  if (index === 0) {
+                    cellContent = 'TOTALS';
+                  } else if (column.key === 'name') {
+                    cellContent = '';
+                  } else if (Object.prototype.hasOwnProperty.call(totals, column.key)) {
+                    cellContent = formatCellValue(totals[column.key], column.key, 2);
+                  }
 
-        return (
-          <td
-            key={`totals-${column.key}`}
-            style={{
-              fontWeight: 'bold',
-              backgroundColor: '#e9ecef',
-              position: 'sticky',
-              bottom: 0, // adjust if your pagination/footer height changes
-              zIndex: 3,
-              borderTop: '3px solid #dee2e6'
-            }}
-          >
-            {cellContent}
-          </td>
-        );
-      })}
-    </tr>
-  </tfoot>
-)}
+                  return (
+                    <td
+                      key={`totals-${column.key}`}
+                      style={{
+                        fontWeight: 'bold',
+                        backgroundColor: '#e9ecef',
+                        position: 'sticky',
+                        bottom: 0,
+                        zIndex: 3,
+                        borderTop: '3px solid #dee2e6'
+                      }}
+                    >
+                      {cellContent}
+                    </td>
+                  );
+                })}
+              </tr>
+            </tfoot>
+          )}
         </Table>
       </div>
 
@@ -502,6 +517,7 @@ const MainTable = ({
               style={{ width: '70px' }}
               value={pageSize}
               onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+              disabled={isLoading}
             >
               {[50, 100, 200].map(size => (
                 <option key={size} value={size}>{size}</option>
@@ -513,9 +529,17 @@ const MainTable = ({
               size="sm" 
               onClick={exportToXLSX}
               style={{ whiteSpace: 'nowrap' }}
+              disabled={isLoading}
             >
               Export Data
             </Button>
+            
+            {isPaginated && (
+              <small className="text-muted ms-2">
+                Server page {currentServerPage}/{totalServerPages}
+                {sessionId && ` (Session: ${sessionId.slice(-8)})`}
+              </small>
+            )}
           </div>
 
           <div className="d-flex align-items-center gap-1">
@@ -529,26 +553,31 @@ const MainTable = ({
                 onChange={(e) => setManualPageInput(e.target.value)}
                 placeholder={currentPage.toString()}
                 style={{ width: '50px' }}
+                disabled={isLoading}
               />
             </Form>
             
             <Pagination className="mb-0" size="sm">
               <Pagination.Prev 
-                disabled={currentPage === 1} 
+                disabled={currentPage === 1 || isLoading} 
                 onClick={() => handlePageChange(currentPage - 1)} 
               />
               {generatePaginationItems()}
               <Pagination.Next 
-                disabled={currentPage === totalPages} 
+                disabled={currentPage === totalPages || isLoading} 
                 onClick={() => handlePageChange(currentPage + 1)} 
               />
             </Pagination>
           </div>
           
-          <div style={{ fontSize: '0.75rem', color: '#6c757d', minWidth: '90px', textAlign: 'right' }}>
-            {sortedData.length > 0 ? (
+          <div style={{ fontSize: '0.75rem', color: '#6c757d', minWidth: '120px', textAlign: 'right' }}>
+            {isPaginated ? (
               <>
-                {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, sortedData.length)} of {sortedData.length}
+                {startRecord}-{endRecord} of {totalRecords}
+              </>
+            ) : serverPageData.length > 0 ? (
+              <>
+                {startRecord}-{endRecord} of {serverPageData.length}
               </>
             ) : (
               'No data'

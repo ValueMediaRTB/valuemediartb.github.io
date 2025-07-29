@@ -29,7 +29,7 @@ const numericFilters = [
   'roi'
 ];
 
-const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, availableColumns = [] }) => {
+const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, availableColumns = [], disabled = false }) => {
   const getDefaultLast7Days = () => {
     const end = new Date();
     const start = new Date();
@@ -127,6 +127,7 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
           <DatePicker
             selectsRange
             startDate={startDate}
+            maxDate={new Date()}
             endDate={endDate}
             onChange={(update) => {
               if (!update || (Array.isArray(update) && update.every(date => date === null))) {
@@ -139,9 +140,16 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
 
               if (start && end) {
                 const diffInDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+                const today = new Date();
+                const fourMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 4, today.getDate());
                 if (diffInDays > 60) {
                   setDateRange(getDefaultLast7Days());
                   setDateWarning('Please select a range of 60 days or less.');
+                  return;
+                }
+                if(start < fourMonthsAgo){
+                  setDateRange(getDefaultLast7Days());
+                  setDateWarning('Start date cannot be earlier than 4 months ago.');
                   return;
                 }
               }
@@ -150,6 +158,7 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
             }}
             className="form-control"
             placeholderText="Select date range"
+            disabled={disabled}
           />
           {dateWarning && (
             <div style={{ color: 'red', fontSize: '0.85rem', marginTop: '4px' }}>
@@ -159,13 +168,13 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
         </div>
 
         {/* Apply Button */}
-        <Button variant="primary" onClick={handleApplyAll} disabled={!!dateWarning}>
+        <Button variant="primary" onClick={handleApplyAll} disabled={!!dateWarning || disabled}>
           Apply
         </Button>
 
         {/* Add Filter Dropdown */}
         <Dropdown>
-          <Dropdown.Toggle variant="outline-secondary">
+          <Dropdown.Toggle variant="outline-secondary" disabled={disabled}>
             Add Filter
           </Dropdown.Toggle>
           <Dropdown.Menu>
@@ -216,6 +225,7 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
                         value={filterOperators[filter] || '='}
                         onChange={(e) => handleOperatorChange(filter, e.target.value)}
                         style={{ maxWidth: '60px', marginRight: '4px' }}
+                        disabled={disabled}
                       >
                         <option value="<">&lt;</option>
                         <option value="=">=</option>
@@ -232,6 +242,7 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
                           ? 'Enter values separated by ,'
                           : `Filter by ${filterLabel}`
                       }
+                      disabled={disabled}
                     />
 
                     <Button
@@ -239,6 +250,7 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
                       size="sm"
                       onClick={() => handleRemoveFilter(filter)}
                       style={{ marginLeft: '4px', padding: '0px 6px', fontSize: '1.3rem', lineHeight: '1.3' }}
+                      disabled={disabled}
                     >
                       ×
                     </Button>

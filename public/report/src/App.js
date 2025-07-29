@@ -21,6 +21,7 @@ function App() {
   const [filters, setFilters] = useState([]);
   const [availableColumns, setAvailableColumns] = useState([]);
   const [currentView, setCurrentView] = useState('tracker'); // 'tracker' or 'budget'
+  const [isGlobalLoading, setIsGlobalLoading] = useState(false);
 
   const handleColumnsUpdate = useCallback((columns) => {
     setAvailableColumns(columns);
@@ -55,7 +56,7 @@ function App() {
         onTrackerStatsView={handleTrackerStatsView}
         currentView={currentView}
       />
-      <div className="flex-grow-1">
+      <div className={`flex-grow-1 ${isGlobalLoading ? 'loading-overlay' : ''}`}>
         {currentView === 'tracker' ? (
           <>
             <DateRangeSelector 
@@ -63,6 +64,7 @@ function App() {
               onFilterApply={handleFilterApply}
               currentDateRange={dateRange}
               availableColumns={availableColumns}
+              disabled={isGlobalLoading}
             />
             <TabGroup
               dateRange={dateRange}
@@ -70,10 +72,11 @@ function App() {
               setActiveTab={setActiveTab}
               filters={filters}
               onColumnsUpdate={handleColumnsUpdate}
+              onLoadingChange={setIsGlobalLoading}
             />
           </>
         ) : (
-          <BudgetChecker />
+          <BudgetChecker onLoadingChange={setIsGlobalLoading} />
         )}
       </div>
     </div>
