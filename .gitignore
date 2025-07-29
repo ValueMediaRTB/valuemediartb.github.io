@@ -6,4 +6,5 @@
 /TODO.txt
 /Design/
 /backend/node_modules
+/backend/.env
 /public/report/node_modules
