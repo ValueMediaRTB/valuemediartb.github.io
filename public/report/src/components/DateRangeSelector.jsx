@@ -51,6 +51,7 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
 
   const handleAddFilter = (filterKey, filterLabel) => {
     if (!selectedFilters.includes(filterKey)) {
+      console.log("ADDED FILTER: ",filterKey,filterLabel);
       setSelectedFilters([...selectedFilters, filterKey]);
       setFilterValues({ ...filterValues, [filterKey]: '' });
     }
@@ -84,7 +85,6 @@ const DateRangeSelector = ({ onDateChange, onFilterApply, currentDateRange, avai
         key: col.key,
         label: col.label || col.key.charAt(0).toUpperCase() + col.key.slice(1).replace(/_/g, ' ')
       }));
-
     return [...mandatoryFilterOptions, ...uniqueColumns];
   };
 

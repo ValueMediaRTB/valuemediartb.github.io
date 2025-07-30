@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Tab, Nav, Button, Modal, Form } from 'react-bootstrap';
 import MainTable from './MainTable';
 import { fetchTableData, clearSortedFilteredCache } from '../api';
+import { useDeepCompareEffect } from 'react-use';
 
 const DEFAULT_TAB_OPTIONS = ['Campaigns', 'Zones', 'SubIDs', 'Countries', 'ISPs'];
 
@@ -70,6 +71,7 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
       const totals = response.totals || null;
       
       // Handle custom groups
+      /* Moved this code in the columns creation section
       if (customGroups.some(group => group.name === activeTab)) {
         const group = customGroups.find(g => g.name === activeTab);
         data = data.map(item => ({
@@ -77,7 +79,7 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
           [group.options[1].toLowerCase()]: item.sv || "",
           ...item
         }));
-      }
+      }*/
       
       // Only update if we're still on the same tab
       if (activeTab === activeTab) {
@@ -104,13 +106,13 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
   };
 
   // Initial load when tab changes
-  useEffect(() => {
+  useDeepCompareEffect(() => {
     if (activeTab && dateRange.start && dateRange.end) {
       // Always start with server page 1 when tab changes
       clearSortedFilteredCache(activeTab, dateRange);
       fetchServerPage(1);
     }
-  }, [activeTab, dateRange, filters, sortConfig]);
+  }, [activeTab, dateRange, filters,sortConfig]);
 
   const allTabs = [...DEFAULT_TAB_OPTIONS, ...customGroups.map(g => g.name)];
 
@@ -197,21 +199,43 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
           numeric: typeof firstRow[key] === 'number'
         };
       });
+      headers.sort((a, b) => {
+        const priorityKeys = ['pv', 'sv'];
+        
+        const aIsPriority = priorityKeys.includes(a.key);
+        const bIsPriority = priorityKeys.includes(b.key);
+
+        if (aIsPriority && bIsPriority) {
+          return priorityKeys.indexOf(a.key) - priorityKeys.indexOf(b.key);
+        }
+        else if (aIsPriority) {
+          return -1;
+        }
+        else if (bIsPriority) {
+          return 1;
+        }
+        else {
+          return a.key.localeCompare(b.key);
+        }
+      });
       
       headers = headers.filter(header => header.key !== 'date');
       if (customGroup) {
         headers = headers.filter(header => 
           header.key !== 'pt' && 
-          header.key !== 'st' && 
-          header.key !== 'pv' && 
-          header.key !== 'sv'
-        );
+          header.key !== 'st'
+        ).map(header => {
+          if(header.key == 'pv')
+            header.label = customGroup.options[0];
+          else if(header.key == 'sv')
+            header.label = customGroup.options[1];
+          return header;
+        });
       }
       
       if (onColumnsUpdate) {
         onColumnsUpdate(headers);
       }
-      
       return headers;
     }
 

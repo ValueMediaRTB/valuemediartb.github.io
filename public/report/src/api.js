@@ -24,8 +24,9 @@ export const fetchTableData = async (tabType, dateRange, filters, sortConfig = n
 
     // Create cache key
     //const sortKey = sortConfig && sortConfig.key ? `_sort_${sortConfig.key}_${sortConfig.direction}` : '';
-    const cacheKey = `${tabType}_${formatDate(dateRange.start)}_${formatDate(dateRange.end)}`;
-    
+    const filterTs = filters.find(f=>f.type == 'traffic_sources')
+    const cacheKey = `${tabType}_${formatDate(dateRange.start)}_${formatDate(dateRange.end)}_`+ (filterTs ? filterTs.value.split(",").map(Number).sort((a,b)=>a-b).join(",") : "");
+    console.log("CACHE KEY:",cacheKey);
     // Initialize cache for this query if not exists
     if (!window._serverPageCache[cacheKey]) {
       window._serverPageCache[cacheKey] = {
@@ -45,6 +46,7 @@ export const fetchTableData = async (tabType, dateRange, filters, sortConfig = n
     }
     
     const cache = window._serverPageCache[cacheKey];
+    console.log("CACHE SESSION ID (before fetch):",cache.sessionId);
 
     const hasMeaningfulSort = sortConfig && sortConfig.key && sortConfig.key !== null;
     const hasNonEmptyFilters = filters && filters.length > 0 && filters.some(f => f.value && f.value.trim() !== '');
@@ -53,14 +55,17 @@ export const fetchTableData = async (tabType, dateRange, filters, sortConfig = n
     // Check if sort/filter changed
     const sortConfigChanged = JSON.stringify(sortConfig) !== JSON.stringify(cache.lastSortConfig);
     const filtersChanged = JSON.stringify(filters) !== JSON.stringify(cache.lastFilters);
+      console.log("Cached SORT CONFIG AND FILTERS",cache.lastSortConfig,cache.lastFilters);
     
     if ((sortConfigChanged || filtersChanged) && hasSortOrFilter) {
       // Clear cache if sort/filter changed
-      clearSortedFilteredCache(tabType,dateRange);
+      clearSortedFilteredCache(tabType,dateRange,filterTs);
       const updatedCache = window._serverPageCache[cacheKey];
-      updatedCache.lastSortConfig = sortConfig;
-      updatedCache.lastFilters = filters;
+      console.log("SORT OR FILTERS CHANGED");
+      updatedCache["lastSortConfig"] = sortConfig;
+      updatedCache["lastFilters"] = filters;
     }
+    console.log("Cached sort and filters AFTER check if changed",window._serverPageCache[cacheKey].lastSortConfig,window._serverPageCache[cacheKey].lastFilters);
 
     // Check if we already have this server page
     const useOriginalData = !hasSortOrFilter;
@@ -70,6 +75,7 @@ export const fetchTableData = async (tabType, dateRange, filters, sortConfig = n
     const totalRecordsKey = useOriginalData ? 'totalRecords' : 'sortedFilteredTotalRecords';
     const totalServerPagesKey = useOriginalData ? 'totalServerPages' : 'sortedFilteredTotalServerPages';
 
+      console.log("CACHE",cache);
     // Check if we already have this server page in the appropriate data source
     if (dataSource.has(page)) {
       console.log(`Returning cached ${useOriginalData ? 'original' : 'sorted/filtered'} server page ${page}`);
@@ -137,6 +143,7 @@ export const fetchTableData = async (tabType, dateRange, filters, sortConfig = n
       cache[sessionIdKey] = result.pagination_info.session_id || null;
       cache[totalServerPagesKey] = result.pagination_info.total_pages || 1;
       cache[totalRecordsKey] = result.pagination_info.total_records || result.data.length;
+      console.log("CACHE SESSION ID (pagination_info):",cache[sessionIdKey]);
       
       console.log(`Server pagination info:`, {
         isPaginated: cache.isPaginated,
@@ -148,7 +155,7 @@ export const fetchTableData = async (tabType, dateRange, filters, sortConfig = n
     
     // Store server page data
     if (result.data) {
-      dataSource.set(page,result.data);
+      //dataSource.set(page,result.data);
       if(useOriginalData){
         cache.loadedServerPages.set(page, result.data);
       }
@@ -158,10 +165,13 @@ export const fetchTableData = async (tabType, dateRange, filters, sortConfig = n
     // For sortAndFilter endpoint, handle different response structure
     if (hasSortOrFilter && result.pages) {
       const pageData = result.pages.data || [];
-      dataSource.set(page,pageData);
+      //dataSource.set(page,pageData);
+      cache.sortedFilteredData.set(page,pageData);
       cache[totalsKey] = result.totals || cache[totalsKey];
       cache[totalRecordsKey] = result.total_records || cache[totalRecordsKey];
       cache[totalServerPagesKey] = result.total_pages || cache[totalServerPagesKey];
+      cache[sessionIdKey] = result.session_id;
+      console.log("CACHE SESSION ID (root):",cache[sessionIdKey]);
       return {
         data: pageData,
         totals: cache[totalsKey],
@@ -209,7 +219,7 @@ export const clearTableCache = (tabType, dateRange, filters, sortConfig) => {
   }
 };
 // Clear only sorted/filtered data while keeping original data
-export const clearSortedFilteredCache = (tabType, dateRange) => {
+export const clearSortedFilteredCache = (tabType, dateRange,traffic_sources) => {
   if (!window._serverPageCache) return;
   const formatDate = (date) => {
     if (!date) return '';
@@ -218,7 +228,7 @@ export const clearSortedFilteredCache = (tabType, dateRange) => {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
-  const baseCacheKey = `${tabType}_${formatDate(dateRange.start)}_${formatDate(dateRange.end)}`;
+  const baseCacheKey = `${tabType}_${formatDate(dateRange.start)}_${formatDate(dateRange.end)}_`+ (traffic_sources ? traffic_sources.value.split(",").map(Number).sort((a,b)=>a-b).join(",") : "");
   if (window._serverPageCache[baseCacheKey]) {
     const cache = window._serverPageCache[baseCacheKey];
     cache.sortedFilteredData.clear();
@@ -226,8 +236,8 @@ export const clearSortedFilteredCache = (tabType, dateRange) => {
     cache.sortedFilteredTotals = null;
     cache.sortedFilteredTotalRecords = 0;
     cache.sortedFilteredTotalServerPages = 0;
-    cache.lastSortConfig = null;
-    cache.lastFilters = null;
+    //cache.lastSortConfig = null;
+    //cache.lastFilters = null;
     console.log(`Cleared sorted/filtered cache for ${baseCacheKey}`);
   }
 };

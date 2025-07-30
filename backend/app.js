@@ -740,7 +740,6 @@ function sendPaginatedResponse(res, reportData, requestedPage = 1, traffic_sourc
       const pageData = getDataPage(session.data, session.totals, pageNumber, session.totalPages);
       
       session.pagesRetrieved.add(pageNumber);
-      
       console.log(`Sending page ${pageNumber} of ${session.totalPages} (${pageData.page_size} records)`);
       // Build response object
       const responseObj = {
@@ -783,7 +782,7 @@ function sendPaginatedResponse(res, reportData, requestedPage = 1, traffic_sourc
           total_pages: 1,
           has_next_page: false,
           has_previous_page: false,
-          session_id: null,
+          session_id: sessionId,
           is_session_complete: true
         }
       };
@@ -1710,9 +1709,15 @@ async function applySortAndFilter(data, sortConfig, filters) {
             case 'roi': crtValue = row.roi; break;
             default: crtValue = row[type]; break;
         }
-        if (!filterValue || !crtValue) return true;
-        
-        // Handle numeric filtering
+        if (!filterValue) return true;
+        if (!crtValue && filterValue) return false;
+        const groupKeys = ["pv","sv","campId","exadsCamp","zone","name"];
+        // Handle numeric keys
+        if(groupKeys.includes(type) && !isNaN(filterValue)){
+          const stringValue = String(crtValue || '');
+          return stringValue.startsWith(filterValue);
+        }
+        // Handle numeric metrics filtering
         if (!isNaN(filterValue) && !isNaN(parseFloat(filterValue))) {
           const numericFilterValue = parseFloat(filterValue);
           if (isNaN(numericFilterValue)) return true;
@@ -1723,9 +1728,8 @@ async function applySortAndFilter(data, sortConfig, filters) {
             default: return Math.abs(crtValue - numericFilterValue) < 0.000001;
           }
         }
-        
         // Handle string filtering
-        const stringValue = String(crtValue || '').toLowerCase();
+        const stringValue = String(crtValue || '').toLowerCase().trim();
         
         if (filterValue.includes(',')) {
           const filterValues = filterValue.split(',').map(v => v.trim()).filter(v => v);
@@ -1780,10 +1784,11 @@ async function handleSortFilterResponse(res, session, sortConfig, filters, reque
     const itemsPerPage = Math.ceil(processedData.length / totalPages);
     
     // Return initial pages (1, 2, and last)
-    const pageNumber = Math.max(1, Math.min(requestedPage, session.totalPages));
-    const resultPage = getDataPage(processedData, totals, pageNumber, session.totalPages);
+    let responseObj;
     
-    const responseObj = {
+    const pageNumber = Math.max(1, Math.min(requestedPage, totalPages));
+    const resultPage = getDataPage(processedData, totals, pageNumber, totalPages);
+    responseObj = {
       pages: resultPage,
       totals: totals,
       total_records: processedData.length,
@@ -2030,6 +2035,7 @@ app.post('/reportAPI/:reportType/sortAndFilter', express.json(), async (req, res
     const { start_date, end_date, filters = [], sort_config, session_id,page } = req.body;
     
     if (!session_id || !paginationSessions.has(session_id)) {
+      console.log("SESSION ID: ",session_id);
       // Generate new data if no session
       const reportData = await dataController.getReport(
         reportType,
