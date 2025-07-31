@@ -1,4 +1,4 @@
-export const fetchTableData = async (tabType, dateRange, filters, sortConfig = null, page = 1) => {
+export const fetchTableData = async (tabType, dateRange, filters, sortConfig = null, page = 1,token=null) => {
   try {
     // Format dates to YYYY-MM-DD
     const formatDate = (date) => {
@@ -26,7 +26,6 @@ export const fetchTableData = async (tabType, dateRange, filters, sortConfig = n
     //const sortKey = sortConfig && sortConfig.key ? `_sort_${sortConfig.key}_${sortConfig.direction}` : '';
     const filterTs = filters.find(f=>f.type == 'traffic_sources')
     const cacheKey = `${tabType}_${formatDate(dateRange.start)}_${formatDate(dateRange.end)}_`+ (filterTs ? filterTs.value.split(",").map(Number).sort((a,b)=>a-b).join(",") : "");
-    console.log("CACHE KEY:",cacheKey);
     // Initialize cache for this query if not exists
     if (!window._serverPageCache[cacheKey]) {
       window._serverPageCache[cacheKey] = {
@@ -46,7 +45,6 @@ export const fetchTableData = async (tabType, dateRange, filters, sortConfig = n
     }
     
     const cache = window._serverPageCache[cacheKey];
-    console.log("CACHE SESSION ID (before fetch):",cache.sessionId);
 
     const hasMeaningfulSort = sortConfig && sortConfig.key && sortConfig.key !== null;
     const hasNonEmptyFilters = filters && filters.length > 0 && filters.some(f => f.value && f.value.trim() !== '');
@@ -55,17 +53,14 @@ export const fetchTableData = async (tabType, dateRange, filters, sortConfig = n
     // Check if sort/filter changed
     const sortConfigChanged = JSON.stringify(sortConfig) !== JSON.stringify(cache.lastSortConfig);
     const filtersChanged = JSON.stringify(filters) !== JSON.stringify(cache.lastFilters);
-      console.log("Cached SORT CONFIG AND FILTERS",cache.lastSortConfig,cache.lastFilters);
     
     if ((sortConfigChanged || filtersChanged) && hasSortOrFilter) {
       // Clear cache if sort/filter changed
       clearSortedFilteredCache(tabType,dateRange,filterTs);
       const updatedCache = window._serverPageCache[cacheKey];
-      console.log("SORT OR FILTERS CHANGED");
       updatedCache["lastSortConfig"] = sortConfig;
       updatedCache["lastFilters"] = filters;
     }
-    console.log("Cached sort and filters AFTER check if changed",window._serverPageCache[cacheKey].lastSortConfig,window._serverPageCache[cacheKey].lastFilters);
 
     // Check if we already have this server page
     const useOriginalData = !hasSortOrFilter;
@@ -75,7 +70,6 @@ export const fetchTableData = async (tabType, dateRange, filters, sortConfig = n
     const totalRecordsKey = useOriginalData ? 'totalRecords' : 'sortedFilteredTotalRecords';
     const totalServerPagesKey = useOriginalData ? 'totalServerPages' : 'sortedFilteredTotalServerPages';
 
-      console.log("CACHE",cache);
     // Check if we already have this server page in the appropriate data source
     if (dataSource.has(page)) {
       console.log(`Returning cached ${useOriginalData ? 'original' : 'sorted/filtered'} server page ${page}`);
@@ -92,8 +86,8 @@ export const fetchTableData = async (tabType, dateRange, filters, sortConfig = n
     }
 
     // Determine which endpoint to use
-    let endpoint, body;
-    
+    let endpoint, body,headers;
+    headers = {'Content-Type':'application/json'};
 
     if (hasSortOrFilter) {
       endpoint = `http://localhost:3000/reportAPI/${tabType.toLowerCase()}/sortAndFilter`;
@@ -115,14 +109,15 @@ export const fetchTableData = async (tabType, dateRange, filters, sortConfig = n
         session_id: cache[sessionIdKey]
       };
     }
+    if(token){
+      headers['Authorization'] = `Bearer ${token}`;
+    }
 
     console.log(`Fetching server page ${page} from ${endpoint}`);
     
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: headers,
       body: JSON.stringify(body)
     });
 
@@ -143,7 +138,6 @@ export const fetchTableData = async (tabType, dateRange, filters, sortConfig = n
       cache[sessionIdKey] = result.pagination_info.session_id || null;
       cache[totalServerPagesKey] = result.pagination_info.total_pages || 1;
       cache[totalRecordsKey] = result.pagination_info.total_records || result.data.length;
-      console.log("CACHE SESSION ID (pagination_info):",cache[sessionIdKey]);
       
       console.log(`Server pagination info:`, {
         isPaginated: cache.isPaginated,
@@ -171,7 +165,6 @@ export const fetchTableData = async (tabType, dateRange, filters, sortConfig = n
       cache[totalRecordsKey] = result.total_records || cache[totalRecordsKey];
       cache[totalServerPagesKey] = result.total_pages || cache[totalServerPagesKey];
       cache[sessionIdKey] = result.session_id;
-      console.log("CACHE SESSION ID (root):",cache[sessionIdKey]);
       return {
         data: pageData,
         totals: cache[totalsKey],

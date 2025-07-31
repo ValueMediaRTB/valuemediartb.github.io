@@ -3,6 +3,7 @@ import { Tab, Nav, Button, Modal, Form } from 'react-bootstrap';
 import MainTable from './MainTable';
 import { fetchTableData, clearSortedFilteredCache } from '../api';
 import { useDeepCompareEffect } from 'react-use';
+import {useAuth} from '../contexts/AuthContext';
 
 const DEFAULT_TAB_OPTIONS = ['Campaigns', 'Zones', 'SubIDs', 'Countries', 'ISPs'];
 
@@ -28,6 +29,7 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
     option1: 'None',
     option2: 'None'
   });
+  const {token} = useAuth();
 
   // Save custom groups to sessionStorage whenever they change
   useEffect(() => {
@@ -64,7 +66,8 @@ const TabGroup = ({ dateRange, activeTab, setActiveTab, filters, onColumnsUpdate
         dateRange,
         filters,
         sortConfig,
-        serverPageNumber
+        serverPageNumber,
+        token
       );
       
       let data = response.data || [];

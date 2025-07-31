@@ -1,12 +1,22 @@
 import React, { useState } from 'react';
-import { Button, ButtonGroup, Modal, Form, Alert } from 'react-bootstrap';
+import { Button, ButtonGroup, Modal, Form, Alert, Dropdown } from 'react-bootstrap';
 import { fetchTableData } from '../api';
+import { useAuth } from '../contexts/AuthContext';
 
-const NavigationBar = ({ currentDateRange, onBudgetCheckerToggle, onTrackerStatsView, currentView }) => {
+const NavigationBar = ({ currentDateRange, onBudgetCheckerToggle, onTrackerStatsView, onHomeView, currentView }) => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [isResetting, setIsResetting] = useState(false);
+  const [changePasswordData, setChangePasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [changePasswordError, setChangePasswordError] = useState('');
+  
+  const { user, logout, changePassword } = useAuth();
 
   // You can change this password to whatever you want
   const RESET_PASSWORD = 'binomdbrefresh2025'; // Change this to your desired password
@@ -103,20 +113,58 @@ const NavigationBar = ({ currentDateRange, onBudgetCheckerToggle, onTrackerStats
     }
   };
 
+  const handleLogout = async () => {
+    await logout();
+  };
+
+  const handleChangePasswordSubmit = async () => {
+    setChangePasswordError('');
+    
+    // Validate
+    if (changePasswordData.newPassword !== changePasswordData.confirmPassword) {
+      setChangePasswordError('New passwords do not match');
+      return;
+    }
+    
+    if (changePasswordData.newPassword.length < 6) {
+      setChangePasswordError('New password must be at least 6 characters long');
+      return;
+    }
+    
+    const result = await changePassword(
+      changePasswordData.currentPassword, 
+      changePasswordData.newPassword
+    );
+    
+    if (result.success) {
+      setShowChangePasswordModal(false);
+      setChangePasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      alert('Password changed successfully!');
+    } else {
+      setChangePasswordError(result.error);
+    }
+  };
+
   return (
     <>
       <nav className="bg-dark text-white p-1 px-2 d-flex justify-content-between align-items-center">
         {/* Left side buttons */}
         <ButtonGroup className="me-2" style={{ gap: '8px' }}>
-          <a href="/public" size="sm" style={{color:'white'}}>
+          <a href="#" style={{color:'white'}} onClick={(e) => { e.preventDefault(); onHomeView(); }}>
             <i className="bi bi-arrow-left"></i> <span style={{fontSize:16}}>Back</span>
           </a>
-          <a href="#" variant="outline-light" size="sm" style={{color:'white',marginLeft:'16px'}} onClick={handleResetCache}>
+          <a href="#" variant="outline-light" size="sm" style={{color:'white',marginLeft:'16px'}} onClick={(e) => { e.preventDefault(); handleResetCache(); }}>
             <i className="bi bi-arrow-counterclockwise"></i> <span style={{fontSize:16}}>Reset cache</span>
           </a>
-          <a href="#" variant="outline-light" size="sm" style={{color:'white',marginLeft:'16px'}} onClick={handleResetDBClick}>
-            <i className="bi bi-arrow-counterclockwise"></i> <span style={{fontSize:16}}>Reset database</span>
-          </a>
+          {user?.role === 'admin' && (
+            <a href="#" variant="outline-light" size="sm" style={{color:'white',marginLeft:'16px'}} onClick={(e) => { e.preventDefault(); handleResetDBClick(); }}>
+              <i className="bi bi-arrow-counterclockwise"></i> <span style={{fontSize:16}}>Reset database</span>
+            </a>
+          )}
         </ButtonGroup>
 
         {/* Center logo */}
@@ -125,7 +173,7 @@ const NavigationBar = ({ currentDateRange, onBudgetCheckerToggle, onTrackerStats
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
             fontSize: '22px',
             fontWeight: '600',
-            marginRight:'90px',
+            marginRight:'-125px',
             color: '#fff'
           }}>
             {/* Modern analytics icon */}
@@ -218,27 +266,52 @@ const NavigationBar = ({ currentDateRange, onBudgetCheckerToggle, onTrackerStats
         </div>
 
         {/* Right side buttons */}
-        <ButtonGroup style={{ gap: '8px' }}>
-          <Button 
-            variant={currentView === 'tracker' ? 'light' : 'outline-light'}
-            size="md" 
-            onClick={handleTrackerStats}
-            style={{ whiteSpace: 'nowrap' }}
-          >
-            <i className="bi bi-bar-chart"></i> Tracker stats
-          </Button>
-          <Button 
-            variant={currentView === 'budget' ? 'light' : 'outline-light'}
-            size="md" 
-            onClick={handleBudgetChecker}
-            style={{ whiteSpace: 'nowrap' }}
-          >
-            <i className="bi bi-currency-dollar"></i> Budget checker
-          </Button>
-        </ButtonGroup>
+        <div className="d-flex align-items-center" style={{ gap: '8px' }}>
+          <ButtonGroup style={{ gap: '8px' }}>
+            <Button 
+              variant={currentView === 'tracker' ? 'light' : 'outline-light'}
+              size="md" 
+              onClick={handleTrackerStats}
+              style={{ whiteSpace: 'nowrap' }}
+            >
+              <i className="bi bi-bar-chart"></i> Tracker stats
+            </Button>
+            <Button 
+              variant={currentView === 'budget' ? 'light' : 'outline-light'}
+              size="md" 
+              onClick={handleBudgetChecker}
+              style={{ whiteSpace: 'nowrap' }}
+            >
+              <i className="bi bi-currency-dollar"></i> Budget checker
+            </Button>
+          </ButtonGroup>
+          
+          {/* User dropdown */}
+          <Dropdown>
+            <Dropdown.Toggle variant="dark" className="no-hover-bg" size="md">
+              <i className="bi bi-person-circle"></i> {user?.username}
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item disabled>
+                <small className="text-muted">
+                  {user?.email}
+                  {user?.role === 'admin' && ' (Admin)'}
+                </small>
+              </Dropdown.Item>
+              <Dropdown.Divider />
+              <Dropdown.Item onClick={() => setShowChangePasswordModal(true)}>
+                <i className="bi bi-key"></i> Change Password
+              </Dropdown.Item>
+              <Dropdown.Divider />
+              <Dropdown.Item onClick={handleLogout}>
+                <i className="bi bi-box-arrow-right"></i> Logout
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+        </div>
       </nav>
 
-      {/* Password Modal */}
+      {/* Password Modal for DB Reset */}
       <Modal 
         show={showPasswordModal} 
         onHide={handleModalClose}
@@ -303,6 +376,82 @@ const NavigationBar = ({ currentDateRange, onBudgetCheckerToggle, onTrackerStats
                 Reset Database
               </>
             )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Change Password Modal */}
+      <Modal 
+        show={showChangePasswordModal} 
+        onHide={() => setShowChangePasswordModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <i className="bi bi-key"></i> Change Password
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {changePasswordError && (
+            <Alert variant="danger" className="mb-3">
+              {changePasswordError}
+            </Alert>
+          )}
+          
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Current Password</Form.Label>
+              <Form.Control
+                type="password"
+                value={changePasswordData.currentPassword}
+                onChange={(e) => setChangePasswordData({
+                  ...changePasswordData,
+                  currentPassword: e.target.value
+                })}
+                placeholder="Enter current password"
+              />
+            </Form.Group>
+            
+            <Form.Group className="mb-3">
+              <Form.Label>New Password</Form.Label>
+              <Form.Control
+                type="password"
+                value={changePasswordData.newPassword}
+                onChange={(e) => setChangePasswordData({
+                  ...changePasswordData,
+                  newPassword: e.target.value
+                })}
+                placeholder="Enter new password (min 6 characters)"
+              />
+            </Form.Group>
+            
+            <Form.Group className="mb-3">
+              <Form.Label>Confirm New Password</Form.Label>
+              <Form.Control
+                type="password"
+                value={changePasswordData.confirmPassword}
+                onChange={(e) => setChangePasswordData({
+                  ...changePasswordData,
+                  confirmPassword: e.target.value
+                })}
+                placeholder="Confirm new password"
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowChangePasswordModal(false)}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="primary" 
+            onClick={handleChangePasswordSubmit}
+            disabled={!changePasswordData.currentPassword || !changePasswordData.newPassword}
+          >
+            Change Password
           </Button>
         </Modal.Footer>
       </Modal>

@@ -7,4 +7,5 @@
 /Design/
 /backend/node_modules
 /backend/.env
-/public/report/node_modules
+/public(old)/
+/frontend/node_modules/

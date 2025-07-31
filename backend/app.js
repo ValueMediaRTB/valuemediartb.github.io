@@ -2,9 +2,16 @@ require('dotenv').config();
 const express = require('express');
 const app = express();
 const axios = require('axios');
+const authController = require('./controllers/authController');
+const { authenticate, optionalAuth, requireAdmin } = require('./middleware/auth');
 const bcrypt = require('bcrypt');
 const PORT = 3000;
 const cacheController = require('./controllers/cacheController');
+const { 
+  checkLoginRateLimit, 
+  expressRateLimit, 
+  getLoginAttemptStats 
+} = require('./middleware/rateLimiter');
 const cors = require('cors');
 const dataController = require('./controllers/dataController');
 const fs = require('fs');
@@ -15,6 +22,7 @@ const { withRetry } = require('./utils/mongoRetry');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 const {soap} = require('strong-soap');
+const User = require('./models/User');
 const xml2js = require('xml2js');
 const { castObject } = require('./models/Campaign');
 const { subscribe } = require('diagnostics_channel');
@@ -885,8 +893,8 @@ async function getAdPumpOffers(user){
         "Offer ID":tempOffer.offer.id,
         "Offer name":tempOffer.offer.name,
         "Sources":tempOffer.sources.map(source=>(source.id+":"+source.name)).join(","),
-        "Tracking URL":trackingLinks.result?.links[0].url,
-        "Clean URL":trackingLinks.result?.links[0].cleanUrl
+        "Tracking URL":trackingLinks.result?.links[0]?.url || '',
+        "Clean URL":trackingLinks.result?.links[0]?.cleanUrl || ''
       });
     }
     //for getting my offers: https://api.adpump.com/ru/apiWmMyOffers/?key=VK5a1GXVXfqv17TG&format=json&page=<pagenr>
@@ -1340,6 +1348,7 @@ async function exportDaisyconOffers(commands,res){
   return jsonRows;
 }
 async function exportPartnerBoostOffers(commands,res){
+  console.log(commands);
   const tokens = JSON.parse(process.env.TOKENS);
   const user = commands[1]["body"]["user"];
   let access_tokens;
@@ -1841,11 +1850,16 @@ mongoose.connection.once('open', () => {
   console.log('MongoDB performance monitoring enabled');
 });
 
+app.use(expressRateLimit);
 app.use((req, res, next) => {
   console.log('Received request:', req.method, req.url);
   next();
 });
-
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1); // Trust first proxy only
+} else {
+  app.set('trust proxy', 'loopback'); // Trust localhost only
+}
 // Enable CORS for all routes
 app.use(cors({ 
   origin: function (origin, callback) {
@@ -1854,8 +1868,18 @@ app.use(cors({
     return callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
+  allowedHeaders: ['Content-Type','Authorization'],
+  credentials: true,
 }));
+
+// Public auth routes (no authentication required)
+app.post('/auth/login',express.json(), checkLoginRateLimit, authController.login);
+
+// Protected auth routes (authentication required)
+app.post('/auth/logout', authenticate, authController.logout);
+app.get('/auth/me',express.json(), authenticate, authController.getCurrentUser);
+app.post('/auth/refresh', authController.refreshToken);
+app.post('/auth/change-password', authenticate, authController.changePassword);
 
 // Serve static files (like your GitHub Pages HTML)
 app.use(express.static(path.join(__dirname, '../public')));
@@ -1894,7 +1918,7 @@ app.get('/admin/mongo-stats', async (req, res) => {
 });
 
 // Proxy endpoint
-app.post('/proxy',express.json(), async (req, res) => {
+app.post('/proxy',authenticate,express.json(), async (req, res) => {
   try{
     req.body.headers["accept"]="application/json";
     console.log(req.body);
@@ -1906,7 +1930,7 @@ app.post('/proxy',express.json(), async (req, res) => {
   }
 });
 
-app.post('/reportAPI/:reportType', express.json(), async (req, res) => {
+app.post('/reportAPI/:reportType',express.json(), authenticate, async (req, res) => {
   try {
     const { reportType } = req.params;
     const { start_date, end_date, filters = [], page = 1, session_id = null, fetch_pages } = req.body;
@@ -2029,7 +2053,7 @@ app.post('/reportAPI/:reportType', express.json(), async (req, res) => {
   }
 });
 
-app.post('/reportAPI/:reportType/sortAndFilter', express.json(), async (req, res) => {
+app.post('/reportAPI/:reportType/sortAndFilter',express.json(),authenticate,  async (req, res) => {
   try {
     const { reportType } = req.params;
     const { start_date, end_date, filters = [], sort_config, session_id,page } = req.body;
@@ -2060,7 +2084,7 @@ app.post('/reportAPI/:reportType/sortAndFilter', express.json(), async (req, res
     res.status(500).json({ error: 'Failed to sort/filter data' });
   }
 });
-app.post('/reportAPI/:reportType/size', express.json(), async (req, res) => {
+app.post('/reportAPI/:reportType/size',express.json(),authenticate,  async (req, res) => {
   try {
     const { reportType } = req.params;
     const { start_date, end_date, filters = [] } = req.body;
@@ -2094,7 +2118,7 @@ app.post('/reportAPI/:reportType/size', express.json(), async (req, res) => {
 });
 
 // Add endpoint to check session status
-app.post('/reportAPI/:reportType/session-status', express.json(), async (req, res) => {
+app.post('/reportAPI/:reportType/session-status',express.json(),authenticate,  async (req, res) => {
   try {
     const { session_id } = req.body;
     
@@ -2130,7 +2154,7 @@ app.post('/reportAPI/:reportType/session-status', express.json(), async (req, re
 });
 
 // Add endpoint to manually complete/cleanup a session
-app.post('/reportAPI/:reportType/complete-session', express.json(), async (req, res) => {
+app.post('/reportAPI/:reportType/complete-session',express.json(),authenticate,  async (req, res) => {
   try {
     const { session_id } = req.body;
     
@@ -2201,15 +2225,14 @@ app.get('/admin/memory-status', (req, res) => {
   res.json(memoryStats);
 });
 
-app.post('/export',express.json(),async (req,res) => {
+app.post('/export',express.json(),authenticate,async (req,res) => {
   try {
     let result;
     const { commands } = req.body;
     const offersIndex = commands[0].commandName.toLowerCase().indexOf("offers");
     const isOfferCommand = offersIndex !== -1;
-    console.log(commands[1].user);
     if(isOfferCommand){
-      result = await cacheController.getAffiliateOffers(commands[0].commandName.toLowerCase().substring(0,offersIndex),commands[1].user);
+      result = await cacheController.getAffiliateOffers(commands[0].commandName.toLowerCase().substring(0,offersIndex)+"_"+commands[1]?.commandName.toLowerCase(),commands[1].body.user);
       if(result && (Object.keys(result).length > 0)){
         console.log("Exported cached data for "+commands[0].commandName);
         res.status(200).send({result:result});
@@ -2220,7 +2243,7 @@ app.post('/export',express.json(),async (req,res) => {
         case 'adPumpOffers': result = exportAdPumpOffers(commands,res); break;
         case 'daisyconClientID': exportDaisyconClientID(commands[1].user,res);break;
         case 'daisyconOffers': result = exportDaisyconOffers(commands,res); break;
-        case 'partnerboostOffers': result = exportPartnerBoostOffers(commands,res); break;
+        case 'partnerboostOffers':result = exportPartnerBoostOffers(commands,res); break;
         case 'tradeTrackerOffers': result = exportTradeTrackerOffers(commands,res); break;
         case 'kwankoOffers': result = exportKwankoOffers(commands,res); break;
         case 'eclicklinkOffers': result = exportEclicklinkOffers(commands,res); break;
@@ -2228,7 +2251,7 @@ app.post('/export',express.json(),async (req,res) => {
         default: throw new Error('Invalid /export operation!');
       }
       if(isOfferCommand)
-        cacheController.setAffiliateOffers(commands[0].commandName.toLowerCase().substring(0,offersIndex),commands[1].user,await result);
+        cacheController.setAffiliateOffers(commands[0].commandName.toLowerCase().substring(0,offersIndex)+"_"+commands[1]?.commandName.toLowerCase(),commands[1].body.user,await result);
     }
   } catch (error) {
     console.log("Error in /export: "+error.message);
@@ -2236,7 +2259,7 @@ app.post('/export',express.json(),async (req,res) => {
   }
 });
 
-app.post('/update',express.json(),async (req,res) => {
+app.post('/update',express.json(),authenticate,async (req,res) => {
   try{
     const {commands} = req.body;
     switch(commands[0].commandName){
