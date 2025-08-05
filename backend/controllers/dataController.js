@@ -5,6 +5,7 @@ const compositeService = require('../services/compositeService');
 const { Parser } = require('json2csv');
 const fs = require('fs');
 const connectDB = require('../config/db.js');
+const jobManager = require('../services/jobManager.js');
 
 class DataController {
   connected = -1
@@ -18,8 +19,16 @@ class DataController {
     return this.connected
   }
 
-  async getReport(reportType, startDate, endDate, filters = {}) {
-    try { // Budget report
+  async getReport(reportType, startDate, endDate, filters = {},jobId,socket) {
+    try {
+      if (jobId) {
+        await jobManager.updateJob(jobId, {
+          status: 'processing',
+          progress: 5,
+          message: `Starting ${reportType} report generation...`
+        },socket);
+      } 
+      // Budget report
       if(reportType === 'budget'){ //check all 'supplier' reports here, not only budget
         const dates = this._getDateRange(new Date(startDate), new Date(endDate));
         let allSupplierResults = [], allSupplierTotals = [];
@@ -48,19 +57,28 @@ class DataController {
             console.error("Error in DataController::getReport(): too many group members (more than 2)");
             return null;
           }
-          return this._getCompositeReport(types, startDate, endDate, filters);
+          return this._getCompositeReport(types, startDate, endDate, filters,jobId,socket);
         }
-        return this._getSingleReport(reportType, startDate, endDate, filters);
+        return this._getSingleReport(reportType, startDate, endDate, filters,jobId,socket);
       }
     } catch (error) {
       console.error(`Error getting report ${reportType}:`, error);
+      // Update job with error if job ID provided
+      if (jobId) {
+        await jobManager.updateJob(jobId, {
+          status: 'error',
+          progress: 100,
+          message: `Report generation failed: ${error.message}`,
+          error: error.message
+        });
+      }
       throw error;
     }
   }
 
   async deleteDBData(dataType,startDate,endDate,filters) {}
 
-  async _getSingleReport(reportType, startDate, endDate, filters) {
+  async _getSingleReport(reportType, startDate, endDate, filters,jobId,socket) {
     // Check if combined data is already cached for this period
     /*const periodCacheKey = `period:${reportType}:${startDate}:${endDate}:${this._hashFilters(filters)}`;
     let cachedPeriodData = await cacheService.getPeriodData(periodCacheKey);
@@ -72,6 +90,7 @@ class DataController {
     // Implementation for single table reports
     const dates = this._getDateRange(new Date(startDate), new Date(endDate));
     let allResults = [], allTotals = [];
+    let overallProgress, dayCounter = 0;
 
     const datesInMonthlyIntervals = this._chunkArray(dates,31);
     let monthlyIntervalsCount = datesInMonthlyIntervals.length;
@@ -79,6 +98,21 @@ class DataController {
     do{
       let monthlyResults = [], monthlyTotals = [];
       for (const date of datesInMonthlyIntervals[monthlyIntervalsIndex]) {
+        let progressInterval;
+        if (jobId) {
+          overallProgress = 5 + (dayCounter*85)/dates.length;
+          progressInterval = setInterval(async () => {
+            const currentJob = await jobManager.getJob(jobId);
+            if (currentJob && currentJob.status === 'processing') {
+              await jobManager.updateJob(jobId, {
+                progress: overallProgress,
+                message: `Processing single report for date ${date} (${dayCounter+1} / ${dates.length}) ...`
+              }, socket);
+            } else {
+              clearInterval(progressInterval);
+            }
+          }, 5000);
+        }
         let cachedDataAndTotals = await cacheService.getDailyData(reportType, date,filters);
         let data,totals;
         
@@ -131,6 +165,8 @@ class DataController {
         const cleanedData = await this.processDataInChunks(cachedDataAndTotals.data,'');
         monthlyResults = monthlyResults.concat(cleanedData);
         monthlyTotals.push(cachedDataAndTotals.totals);
+        clearInterval(progressInterval);
+        dayCounter+=1;
       }
       let monthlyCombinedResult, monthlyCombinedTotals;
       if(datesInMonthlyIntervals[monthlyIntervalsIndex].length > 1){
@@ -173,7 +209,7 @@ class DataController {
     }
   }
 
-  async _getCompositeReport(types, startDate, endDate, filters) {
+  async _getCompositeReport(types, startDate, endDate, filters,jobId,socket) {
     // Check if combined data is already cached for this period
     /*const periodCacheKey = `period:${types.sort().join('_')}:${startDate}:${endDate}:${this._hashFilters(filters)}`;
     let cachedPeriodData = await cacheService.getPeriodData(periodCacheKey);
@@ -187,11 +223,27 @@ class DataController {
     let allResults = [], allTotals = [];
 
     const datesInMonthlyIntervals = this._chunkArray(dates,31);
+    let overallProgress,dayCounter = 0;
     let monthlyIntervalsCount = datesInMonthlyIntervals.length;
     let monthlyIntervalsIndex = 0
     do{
       let monthlyResults = [], monthlyTotals = [];
       for (const date of datesInMonthlyIntervals[monthlyIntervalsIndex]) {
+        let progressInterval;
+         if (jobId) {
+          overallProgress = 5 + (dayCounter*85)/dates.length;
+          progressInterval = setInterval(async () => {
+            const currentJob = await jobManager.getJob(jobId);
+            if (currentJob && currentJob.status === 'processing') {
+              await jobManager.updateJob(jobId, {
+                progress: overallProgress,
+                message: `Processing composite report for date ${date} (${dayCounter+1} / ${dates.length}) ...`
+              }, socket);
+            } else {
+              clearInterval(progressInterval);
+            }
+          }, 5000);
+        }
         let cachedDataAndTotals = await cacheService.getCompositeData(types, date, filters);
         let data = [],totals;
         
@@ -240,7 +292,8 @@ class DataController {
         const cleanedData = await this.processDataInChunks(cachedDataAndTotals.data,'');
         monthlyResults = monthlyResults.concat(cleanedData);
         monthlyTotals.push(cachedDataAndTotals.totals);
-        
+        dayCounter +=1;
+        clearInterval(progressInterval);
         //allResults = data.map(({traffic_sources,...restOfData})=>restOfData); works for large datasets
       }
       let monthlyCombinedResult, monthlyCombinedTotals;

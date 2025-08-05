@@ -96,7 +96,7 @@ const PartnerBoostPage = ({ onBack }) => {
                 'accept': 'application/json' 
               },
               method: "POST",
-              body: { user: selectedAccount }
+              user: selectedAccount
             }
           ]
         }),

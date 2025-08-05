@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, useRef } from 'react';
 import {clearAllTableCaches} from '../api';
 import {App} from '../App';
+import { initSocket, disconnectSocket } from '../api';
 
 const AuthContext = createContext({});
 
@@ -42,6 +43,7 @@ export const AuthProvider = ({ children,resetAllCallback }) => {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      disconnectSocket();
       setToken(null);
       setUser(null);
       localStorage.removeItem('authToken');
@@ -130,6 +132,15 @@ export const AuthProvider = ({ children,resetAllCallback }) => {
         setUser(data.user);
         localStorage.setItem('authToken', data.token);
         hasCheckedAuth.current = true; // Mark as checked since we just logged in
+        await new Promise((resolve, reject) => {
+          const socket = initSocket(data.token);
+          if (socket.connected) {
+            resolve();
+          } else {
+            socket.once('connect', resolve);
+            socket.once('connect_error', reject);
+          }
+        });
         return { success: true };
       } else {
         return { success: false, error: data.error || 'Login failed' };

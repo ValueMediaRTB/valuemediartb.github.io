@@ -5,10 +5,17 @@ import {config} from '../../config';
 
 const AdPumpPage = ({ onBack }) => {
   const [selectedUser, setSelectedUser] = useState('compliancealphaads');
+  const [selectedGeo, setSelectedGeo] = useState('All');
   const [resultTitle, setResultTitle] = useState('');
   const [resultContainer, setResultContainer] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { token } = useAuth();
+
+  const handleBlur = () => {
+  if (!selectedGeo) {
+    setSelectedGeo('All');
+  }
+};
 
   const validateInput = () => {
     return true;
@@ -85,7 +92,7 @@ const AdPumpPage = ({ onBack }) => {
         body: JSON.stringify({
           commands: [
             { commandName: "adPumpOffers" },
-            { user: selectedUser }
+            { user: selectedUser,geo:selectedGeo }
           ]
         }),
         headers: { 
@@ -100,10 +107,15 @@ const AdPumpPage = ({ onBack }) => {
         setResultContainer("");
       } else {
         const data = await response.json();
+
         setResultTitle("Export offers successful for user " + selectedUser + " !");
-        setResultContainer("Downloading adPumpOffers.csv...");
-        downloadCSV(data, 'adPumpOffers.csv');
-        setTimeout(() => setResultContainer(""), 2000);
+        if(data.result.length == 0)
+          setResultContainer("No offers found!");
+        else{
+          setResultContainer("Downloading adPumpOffers.csv...");
+          downloadCSV(data.result, 'adPumpOffers.csv');
+          setTimeout(() => setResultContainer(""), 2000);
+        }
         console.log('adPump/exportOffers() success:', data);
       }
     } catch (error) {
@@ -191,6 +203,8 @@ const AdPumpPage = ({ onBack }) => {
             <option value="compliancealphaads">compliance@alphaads-group.com</option>
             <option value="advertisersuccessnetcraft">Netcraft</option>
           </Form.Select>
+          <Form.Label style={{ gridRow: '2' }}>Geo (2-letter code)</Form.Label>
+          <Form.Control style={{gridRow:'2',width:'200px'}} type="text" value={selectedGeo} onChange={(e)=>setSelectedGeo(e.target.value)}></Form.Control>
         </div>
 
         <div style={{ margin: '8px' }}>

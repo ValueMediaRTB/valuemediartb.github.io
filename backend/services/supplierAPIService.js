@@ -1,7 +1,7 @@
 // 1. Create a new SupplierApiService for all supplier API interactions
 // services/supplierApiService.js
 const axios = require('axios');
-const { default: PQueue } = require('p-queue');
+const PQueue = require('@esm2cjs/p-queue').default;
 const {suppliers} = require("../config/suppliers.js");
 
 class SupplierApiService {
@@ -312,7 +312,6 @@ class SupplierApiService {
         accessToken: data.access_token || null
       })
     });
-    console.log(result);
     if(!result.data.accessToken)
         throw new Error("TrafficStars authentication failed!");
     this.accessTokens["trafficstars"] = result.data.accessToken;

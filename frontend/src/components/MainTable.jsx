@@ -405,7 +405,7 @@ const MainTable = ({
   const isWaitingForServerPage = requestedPage !== null && paginatedData.length === 0;
 
   if (isLoading || isWaitingForServerPage) {
-    return (
+      return (
       <div className="text-center py-5">
         <div className="spinner-border" role="status">
           <span className="visually-hidden">Loading...</span>

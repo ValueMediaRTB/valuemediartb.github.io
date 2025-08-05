@@ -3,7 +3,7 @@ import { Button, ButtonGroup, Modal, Form, Alert, Dropdown } from 'react-bootstr
 import { fetchTableData } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 
-const NavigationBar = ({ currentDateRange, onBudgetCheckerToggle, onTrackerStatsView, onHomeView, currentView }) => {
+const NavigationBar = ({ currentDateRange, onBudgetCheckerToggle, onTrackerStatsView, onHomeView, currentView,onResetApp }) => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [password, setPassword] = useState('');
@@ -154,7 +154,7 @@ const NavigationBar = ({ currentDateRange, onBudgetCheckerToggle, onTrackerStats
       <nav className="bg-dark text-white p-1 px-2 d-flex justify-content-between align-items-center">
         {/* Left side buttons */}
         <ButtonGroup className="me-2" style={{ gap: '8px' }}>
-          <a href="#" style={{color:'white'}} onClick={(e) => { e.preventDefault(); onHomeView(); }}>
+          <a href="#" style={{color:'white'}} onClick={(e) => { e.preventDefault();if(onResetApp)onResetApp(); window.location.href='/'}}>
             <i className="bi bi-arrow-left"></i> <span style={{fontSize:16}}>Back</span>
           </a>
           <a href="#" variant="outline-light" size="sm" style={{color:'white',marginLeft:'16px'}} onClick={(e) => { e.preventDefault(); handleResetCache(); }}>

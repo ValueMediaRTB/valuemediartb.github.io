@@ -10,6 +10,7 @@
   "author": "Andrei Petrariu",
   "license": "ISC",
   "dependencies": {
+    "@esm2cjs/p-queue": "^7.3.0",
     "axios": "^1.6.2",
     "bcrypt": "^6.0.0",
     "bull": "^4.12.0",
@@ -21,11 +22,11 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.3",
     "node-cron": "^3.0.2",
-    "p-queue": "^8.1.0",
-    "redis": "^4.6.10",
+    "redis": "^4.7.1",
     "request": "^2.88.2",
     "snappy": "^7.3.0",
     "soap": "^1.1.12",
+    "socket.io": "^4.8.1",
     "strong-soap": "^4.1.13",
     "xml2js": "^0.6.2"
   },

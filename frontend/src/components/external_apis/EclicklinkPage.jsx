@@ -5,8 +5,8 @@ import {config} from '../../config';
 
 // EclicklinkPage.jsx
 const EclicklinkPage = ({ onBack }) => {
-  const [serverURL, setServerURL] = useState('');
   const [selectedUser, setSelectedUser] = useState('advertisersuccessnetcraft');
+  const [selectedGeo, setSelectedGeo] = useState('All');
   const [resultTitle, setResultTitle] = useState('');
   const [resultContainer, setResultContainer] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -87,7 +87,7 @@ const EclicklinkPage = ({ onBack }) => {
         body: JSON.stringify({
           commands: [
             { commandName: "eclicklinkOffers" },
-            { user: selectedUser }
+            { user: selectedUser,geo:selectedGeo }
           ]
         }),
         headers: { 
@@ -145,6 +145,8 @@ const EclicklinkPage = ({ onBack }) => {
           >
             <option value="advertisersuccessnetcraft">advertisersuccess@netcraft-digital.com</option>
           </Form.Select>
+          <Form.Label style={{ gridRow: '2' }}>Geo (2-letter code)</Form.Label>
+          <Form.Control style={{gridRow:'2',width:'200px'}} type="text" value={selectedGeo} onChange={(e)=>setSelectedGeo(e.target.value)}></Form.Control>
         </div>
 
         <div style={{ margin: '8px' }}>

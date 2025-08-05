@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Table, Spinner } from 'react-bootstrap';
-import {fetchTableData} from '../api.js'
+import {fetchTableData} from '../api.js';
+import {useAuth} from '../contexts/AuthContext';
 
 const BudgetChecker = () => {
   const [budgetData, setBudgetData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const {token} = useAuth();
 
   const formatMoney = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -18,7 +20,7 @@ const BudgetChecker = () => {
   const fetchBudgetData = async () => {
     setIsLoading(true);
     try {
-        const {data:apiData,totals:apiTotals} = await fetchTableData("budget",{start:new Date(),end:new Date()},[{type:'suppliers',value:'All'}]);
+        const {data:apiData,totals:apiTotals} = await fetchTableData("budget",{start:new Date(),end:new Date()},[{type:'suppliers',value:'All'}],null,null,token);
         /*
       // Replace this with your actual API call
       // const response = await fetch('/api/budget-data');

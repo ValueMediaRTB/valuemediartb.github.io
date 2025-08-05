@@ -10,9 +10,12 @@ import HomePage from './components/HomePage';
 import ExternalAPIsPage from './components/ExternalAPIsPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import 'react-datepicker/dist/react-datepicker.css';
+import JobProgress from './components/JobProgress';
+import { jobMonitor } from './api';
 
-function AppContent({setResetAllFn}) {
+function AppContent({setResetAllFn,onResetApp}) {
   const { isAuthenticated, loading } = useAuth();
+  const [activeJobId, setActiveJobId] = React.useState(null);
   
   // Initialize with default last 7 days
   const getDefaultLast7Days = () => {
@@ -30,14 +33,34 @@ function AppContent({setResetAllFn}) {
   const [isGlobalLoading, setIsGlobalLoading] = useState(false);
 
   const resetAll = ()=>{
+    setActiveJobId(null);
     setActiveTab(null);
-    setDateRange(null);
-    setFilters(null);
+    setDateRange(getDefaultLast7Days());
+    setFilters([]);
     setAvailableColumns(null);
+    setCurrentView('home');
+    setIsGlobalLoading(false);
   };
   useEffect(() => {
     setResetAllFn(() => resetAll);
   }, [setResetAllFn]);
+  useEffect(() => {
+    const handleJobStart = (jobId) => {
+      setActiveJobId(jobId);
+    };
+
+    const handleJobEnd = () => {
+      setActiveJobId(null);
+    };
+
+    jobMonitor.on('job_start', handleJobStart);
+    jobMonitor.on('job_end', handleJobEnd);
+
+    return () => {
+      jobMonitor.off('job_start', handleJobStart);
+      jobMonitor.off('job_end', handleJobEnd);
+    };
+  }, []);
 
   const handleColumnsUpdate = useCallback((columns) => {
     setAvailableColumns(columns);
@@ -98,6 +121,7 @@ function AppContent({setResetAllFn}) {
           onTrackerStatsView={handleTrackerStatsView}
           onHomeView={handleHomeView}
           currentView={currentView}
+          onResetAll={onResetApp}
         />
       )}
       <div className={`flex-grow-1 ${isGlobalLoading ? 'loading-overlay' : ''}`}>
@@ -132,18 +156,24 @@ function AppContent({setResetAllFn}) {
           <BudgetChecker onLoadingChange={setIsGlobalLoading} />
         )}
       </div>
+      <JobProgress jobId={activeJobId} />
     </div>
   );
 }
 
 function App() {
+  const [resetKey,setResetKey] = useState(0);
   const resetAllRef = useRef(()=>{});
   const setResetAllCallback = useCallback((setterFn)=>{
     resetAllRef.current = setterFn;
   },[]);
+  const handleResetApp =()=>{
+    console.log("Resetting app");
+    setResetKey(prev => prev + 1);
+  }
   return (
     <AuthProvider setResetAllCallback={resetAllRef}>
-      <AppContent setResetAllFn={setResetAllCallback}/>
+      <AppContent key={resetKey} setResetAllFn={setResetAllCallback} onResetApp={handleResetApp}/>
     </AuthProvider>
   );
 }
